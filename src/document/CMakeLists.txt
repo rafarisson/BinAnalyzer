@@ -5,12 +5,14 @@ bina_add_library(document
         include/bina/document/DocumentFactory.h
         include/bina/document/FieldTree.h
         include/bina/document/PaddingSynchronizer.h
+        include/bina/document/TypeCatalog.h
         Document.cpp
         DocumentFactory.cpp
         FieldTree.cpp
         FieldTreeEditing.cpp
         FieldTreePadding.cpp
         PaddingSynchronizer.cpp
+        TypeCatalog.cpp
     DEPENDS
         Bina::schema
         Bina::format

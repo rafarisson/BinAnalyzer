@@ -4,8 +4,9 @@ import QtQuick
 import QtQuick.Controls.Basic
 import Bina.App
 
-// Menu de contexto genérico para um model com actions(index) e trigger(index, id): as entradas
-// (texto e habilitado) e a execução vêm do model, que também decide o que o campo permite.
+// Menu de contexto genérico para um model com actions(index) e trigger(index, id, text): as entradas
+// (texto e habilitado) e a execução vêm do model, que também decide o que o campo permite. Uma entrada
+// com 'prompt' precisa de um texto: o menu avisa por textRequested() e quem o usa pede o texto.
 Menu {
     id: root
 
@@ -13,6 +14,8 @@ Menu {
 
     property var targetIndex
     property list<var> entries
+
+    signal textRequested(var index, string actionId, string prompt)
 
     function openFor(index, parentItem, x, y) {
         const list = itemModel.actions(index)
@@ -36,7 +39,12 @@ Menu {
 
             text: modelData.text
             enabled: modelData.enabled
-            onTriggered: root.itemModel.trigger(root.targetIndex, modelData.id)
+            onTriggered: {
+                if (modelData.prompt)
+                    root.textRequested(root.targetIndex, modelData.id, modelData.prompt)
+                else
+                    root.itemModel.trigger(root.targetIndex, modelData.id)
+            }
         }
 
         onObjectAdded: (index, object) => root.insertItem(index, object)

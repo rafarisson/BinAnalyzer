@@ -1,5 +1,6 @@
 #include "TestSupport.h"
 
+#include <QDir>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -549,6 +550,76 @@ private slots:
 
         const QList<QByteArray> lines = readFile(csv).trimmed().split('\n');
         QCOMPARE(lines.size(), total + 1);                              // cabeçalho + registros
+    }
+
+    void theTypeLibraryStartsWithTheDefaults()
+    {
+        QTemporaryDir defaults;
+        QTemporaryDir home;
+        QVERIFY(QFile::copy(sample("struct_tm.json"), defaults.filePath("struct_tm.json")));
+
+        const QString folder = home.filePath("types");
+
+        {
+            AppController app;
+            app.openTypeLibrary(folder, defaults.path());
+
+            QCOMPARE(app.typeLibraryPath(), folder);
+            QVERIFY(QFile::exists(folder + "/struct_tm.json"));
+            QVERIFY(app.libraryHasType("struct_tm"));
+        }
+
+        // A pasta já existe: um tipo padrão apagado não volta sozinho.
+        QVERIFY(QFile::remove(folder + "/struct_tm.json"));
+
+        AppController app;
+        app.openTypeLibrary(folder, defaults.path());
+        QVERIFY(!app.libraryHasType("struct_tm"));
+
+        app.restoreDefaultTypes();
+        QVERIFY(app.libraryHasType("struct_tm"));
+    }
+
+    void aTypeIsSavedToTheLibraryWithItsDependencies()
+    {
+        QTemporaryDir home;
+        QTemporaryDir empty;
+        const QString folder = home.filePath("types");
+
+        AppController app;
+        app.openTypeLibrary(folder, empty.path());
+        QVERIFY(app.openSchema(sample("struct_tm.json")));
+
+        QVERIFY(app.saveTypeToLibrary("struct_tm"));
+        QVERIFY(app.libraryHasType("struct_tm"));
+
+        const QJsonObject saved = QJsonDocument::fromJson(readFile(folder + "/struct_tm.json")).object();
+        QCOMPARE(saved.value("types").toArray().size(), 1);
+        QCOMPARE(saved.value("formatters").toArray().size(), 1);
+
+        QCOMPARE(app.typeController()->libraryState(), bina::presentation::TypeDefinitionController::SameAsLibrary);
+    }
+
+    void anInvalidLibraryFileIsIgnored()
+    {
+        QTemporaryDir home;
+        QTemporaryDir empty;
+        QVERIFY(QDir(home.path()).mkpath("types"));
+        const QString folder = home.filePath("types");
+
+        QFile broken(folder + "/broken.json");
+        QVERIFY(broken.open(QIODevice::WriteOnly));
+        broken.write("{ not json");
+        broken.close();
+        QVERIFY(QFile::copy(sample("struct_tm.json"), folder + "/struct_tm.json"));
+
+        AppController app;
+        QSignalSpy messages(&app, &AppController::messageAdded);
+        app.openTypeLibrary(folder, empty.path());
+
+        QVERIFY(app.libraryHasType("struct_tm"));
+        QCOMPARE(messages.size(), 1);
+        QVERIFY(messages.first().at(0).toString().contains("broken.json"));
     }
 };
 

@@ -1,5 +1,6 @@
 #include "TestSupport.h"
 
+#include "bina/document/TypeCatalog.h"
 #include "bina/io/JsonDocumentExporter.h"
 
 using namespace TestSupport;
@@ -12,6 +13,22 @@ QByteArray toJson(const bina::document::Document &doc)
     QByteArray json;
     return bina::io::JsonDocumentExporter().serialize(bina::document::DocumentFactory::toDto(doc), json) ? json : QByteArray();
 }
+
+// Uma biblioteca de tipos com o conteúdo de um JSON de estrutura.
+bina::document::TypeCatalog catalogFromJson(const QByteArray &json)
+{
+    bina::document::DocumentDto dto;
+    bina::io::JsonDocumentImporter().parse(json, dto);
+
+    bina::document::TypeCatalog catalog;
+    catalog.add(dto);
+
+    return catalog;
+}
+
+const QByteArray kGroupJson = R"({"version":1,"elements":[
+    {"name":"g","elements":[{"name":"a","type":"uint8"},{"name":"b","type":"uint32"}]},
+    {"name":"c","type":"uint8"}]})";
 
 }
 
@@ -251,6 +268,179 @@ private slots:
         QVERIFY(tree->removeField(findField(group, "x")));
         QCOMPARE(group->childCount(), 0);                    // os auto_pad também saíram
         QCOMPARE(group->typeId(), QStringLiteral("uint32"));
+    }
+
+    void aGroupBecomesATypeWithTheSameLayout()
+    {
+        auto doc = documentFromJson(kGroupJson);
+        QVERIFY(doc);
+
+        bina::document::FieldTree *tree = doc->fields();
+        bina::schema::Field *group = findField(tree->root(), "g");
+        const int groupSize = tree->sizeInBytes(group);
+        const int rootSize = tree->sizeInBytes(tree->root());
+        QSignalSpy added(doc.get(), &bina::document::Document::typeAdded);
+
+        QVERIFY(tree->canCollapseToType(group));
+        QVERIFY(doc->extractType(group, "pair"));
+
+        QCOMPARE(group->typeId(), QString("pair"));
+        QCOMPARE(group->childCount(), 0);
+        QCOMPARE(childNames(doc->types()->definition("pair")), QStringList({"a", "b"}));
+        QCOMPARE(tree->sizeInBytes(group), groupSize);
+        QCOMPARE(tree->sizeInBytes(tree->root()), rootSize);
+        QCOMPARE(added.size(), 1);
+        QVERIFY(tree->typeIds().contains("pair"));
+    }
+
+    void extractingRefusesAnIdInUse()
+    {
+        auto doc = documentFromJson(kGroupJson);
+        QVERIFY(doc);
+
+        bina::schema::Field *group = findField(doc->fields()->root(), "g");
+
+        QVERIFY(!doc->extractType(group, "uint8"));
+        QCOMPARE(childNames(group), QStringList({"a", "b"}));
+
+        // Um campo sem filhos não vira tipo.
+        QVERIFY(!doc->extractType(findField(doc->fields()->root(), "c"), "single"));
+        QVERIFY(!doc->types()->contains("single"));
+    }
+
+    void aTypeBecomesAGroupAgain()
+    {
+        auto doc = documentFromJson(kGroupJson);
+        QVERIFY(doc);
+
+        bina::document::FieldTree *tree = doc->fields();
+        bina::schema::Field *group = findField(tree->root(), "g");
+        const int size = tree->sizeInBytes(group);
+        QVERIFY(doc->extractType(group, "pair"));
+
+        QVERIFY(tree->canInlineType(group));
+        QVERIFY(tree->inlineType(group));
+
+        QCOMPARE(group->typeId(), QString("struct"));
+        QCOMPARE(childNames(group), QStringList({"a", "b"}));
+        QCOMPARE(padSizes(group), QList<int>({3}));
+        QCOMPARE(tree->sizeInBytes(group), size);
+
+        // O tipo continua no documento, agora sem uso.
+        QVERIFY(doc->types()->definition("pair"));
+    }
+
+    void onlyUnusedTypesCanBeRemoved()
+    {
+        auto doc = documentFromJson(kGroupJson);
+        QVERIFY(doc);
+
+        bina::schema::Field *group = findField(doc->fields()->root(), "g");
+        QVERIFY(doc->extractType(group, "pair"));
+        QVERIFY(doc->addType("spare"));
+
+        QVERIFY(!doc->removeType("pair"));        // usado pela estrutura
+        QVERIFY(!doc->removeType("uint8"));       // primitivo
+
+        QSignalSpy removed(doc.get(), &bina::document::Document::typeRemoved);
+        QVERIFY(doc->removeType("spare"));
+        QCOMPARE(removed.size(), 1);
+        QVERIFY(!doc->types()->contains("spare"));
+        QVERIFY(!toJson(*doc).contains("spare"));
+    }
+
+    void aTypeUsedByAnotherTypeIsNotRemoved()
+    {
+        auto doc = documentFromJson(R"({"version":1,
+            "types":[{"id":"inner","elements":[{"name":"x","type":"uint8"}]},
+                     {"id":"outer","elements":[{"name":"i","type":"inner"}]}],
+            "elements":[{"name":"a","type":"uint8"}]})");
+        QVERIFY(doc);
+
+        QVERIFY(!doc->removeType("inner"));
+        QVERIFY(doc->removeType("outer"));
+        QVERIFY(doc->removeType("inner"));
+    }
+
+    void aLibraryTypeIsCopiedWhenUsed()
+    {
+        auto doc = documentFromJson(R"({"version":1,"elements":[{"name":"when","type":"uint32"}]})");
+        QVERIFY(doc);
+
+        const bina::document::TypeCatalog library = catalogFromJson(readFile(sample("struct_tm.json")));
+        doc->setLibrary(&library);
+
+        QVERIFY(doc->fields()->typeIds().contains("struct_tm"));
+        QVERIFY(!doc->types()->contains("struct_tm"));
+
+        QSignalSpy imported(doc.get(), &bina::document::Document::typeImported);
+        bina::schema::Field *when = findField(doc->fields()->root(), "when");
+
+        QVERIFY(doc->fields()->setTypeId(when, "struct_tm"));
+
+        QCOMPARE(imported.size(), 1);
+        QVERIFY(doc->types()->definition("struct_tm"));
+        QVERIFY(doc->formats()->contains("tm_datetime"));
+        QCOMPARE(doc->types()->find("struct_tm")->formatId(), QString("tm_datetime"));
+        QCOMPARE(doc->fields()->sizeInBytes(when), 36);
+
+        // O documento salvo leva o tipo e o formato, e abre sem a biblioteca.
+        auto reopened = documentFromJson(toJson(*doc));
+        QVERIFY(reopened);
+        QVERIFY(reopened->types()->definition("struct_tm"));
+    }
+
+    void aCopyBringsTheTypesItDependsOn()
+    {
+        auto doc = documentFromJson(R"({"version":1,"elements":[{"name":"a","type":"uint8"}]})");
+        QVERIFY(doc);
+
+        const bina::document::TypeCatalog library = catalogFromJson(R"({"version":1,
+            "formatters":[{"id":"hexpair","pattern":"%(x)02x"}],
+            "types":[{"id":"inner","elements":[{"name":"x","type":"uint8"}],"formatter":"hexpair"},
+                     {"id":"outer","elements":[{"name":"i","type":"inner"},{"name":"j","type":"inner"}]}]})");
+        doc->setLibrary(&library);
+
+        QVERIFY(doc->fields()->setTypeId(findField(doc->fields()->root(), "a"), "outer"));
+
+        QVERIFY(doc->types()->definition("inner"));
+        QVERIFY(doc->types()->definition("outer"));
+        QVERIFY(doc->formats()->contains("hexpair"));
+    }
+
+    void theDocumentTypeWinsOverTheLibrary()
+    {
+        auto doc = documentFromJson(R"({"version":1,
+            "types":[{"id":"struct_tm","elements":[{"name":"tm_sec","type":"int32"}]}],
+            "elements":[{"name":"a","type":"uint8"}]})");
+        QVERIFY(doc);
+
+        const bina::document::TypeCatalog library = catalogFromJson(readFile(sample("struct_tm.json")));
+        doc->setLibrary(&library);
+
+        using State = bina::document::Document::LibraryState;
+        QCOMPARE(doc->libraryState("struct_tm"), State::DiffersFromLibrary);
+
+        // Usar o tipo não traz o da biblioteca: o do documento continua.
+        QVERIFY(doc->fields()->setTypeId(findField(doc->fields()->root(), "a"), "struct_tm"));
+        QCOMPARE(doc->types()->definition("struct_tm")->childCount(), 1);
+
+        QVERIFY(doc->updateTypeFromLibrary("struct_tm"));
+        QCOMPARE(childNames(doc->types()->definition("struct_tm")).size(), 9);
+        QCOMPARE(doc->libraryState("struct_tm"), State::DiffersFromLibrary);   // o formato padrão não muda
+        QCOMPARE(doc->libraryState("uint8"), State::NotInLibrary);
+    }
+
+    void theSameTypeIsReportedAsSame()
+    {
+        auto doc = sampleDocument("struct_tm.json");
+        QVERIFY(doc);
+
+        const bina::document::TypeCatalog library = catalogFromJson(readFile(sample("struct_tm.json")));
+        doc->setLibrary(&library);
+
+        QCOMPARE(doc->libraryState("struct_tm"), bina::document::Document::LibraryState::SameAsLibrary);
+        QVERIFY(!doc->fields()->typeIds().isEmpty());
     }
 };
 

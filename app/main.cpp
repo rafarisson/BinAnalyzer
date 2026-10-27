@@ -2,6 +2,7 @@
 #include <QLocale>
 #include <QQmlApplicationEngine>
 #include <QQuickWindow>
+#include <QStandardPaths>
 #include <QTimer>
 #include <QTranslator>
 
@@ -10,6 +11,7 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+    QCoreApplication::setApplicationName(QStringLiteral("BinAnalyzer"));
 
     // Os textos estão em português; em outra língua do sistema usa a tradução, se houver.
     QTranslator translator;
@@ -21,6 +23,10 @@ int main(int argc, char *argv[])
     const QStringList args = app.arguments();
 
     bina::app::AppController controller;
+
+    // Antes de abrir a estrutura, para que os tipos da biblioteca já apareçam nos campos.
+    controller.openTypeLibrary(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
+                               + QStringLiteral("/types"));
 
     if (args.size() > 1) {
         controller.openSchema(args.at(1));

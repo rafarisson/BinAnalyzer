@@ -66,10 +66,16 @@ public:
 
     const schema::Field *root() const;
 
+    // Oferece no menu "Criar tipo a partir do grupo". A árvore não cria tipos: o model pede por
+    // extractTypeRequested() e quem é dono dos tipos (o documento) atende.
+    void setTypeExtractionEnabled(bool enabled) { m_typeExtraction = enabled; }
+
     // Menu de contexto genérico: lista de {id, text, enabled} para o campo e execução por id.
-    // As regras (o que está habilitado, auto_pad sem ações) ficam aqui, não na view.
+    // As regras (o que está habilitado, auto_pad sem ações) ficam aqui, não na view. Uma ação que
+    // precisa de um texto (o id do tipo novo) traz também 'prompt', o título do pedido: a view pede
+    // o texto e o passa em 'text'.
     Q_INVOKABLE QVariantList actions(const QModelIndex &index) const;
-    Q_INVOKABLE bool trigger(const QModelIndex &index, const QString &actionId);
+    Q_INVOKABLE bool trigger(const QModelIndex &index, const QString &actionId, const QString &text = QString());
 
     // Arrastar e soltar por índices, com as mesmas regras de canDropMimeData/dropMimeData, para
     // um item que acompanha o ponteiro (QML). Não usa QMimeData e não depende de removeRows().
@@ -123,6 +129,9 @@ signals:
     // Uma edição foi recusada; 'message' explica o motivo.
     void errorOccurred(const QString &message);
 
+    // O usuário pediu que o grupo vire o tipo 'id' (ver setTypeExtractionEnabled()).
+    void extractTypeRequested(bina::schema::Field *group, const QString &id);
+
 private:
 
     schema::Field *sourceFromMime(const QMimeData *data) const;
@@ -135,6 +144,7 @@ private:
 
     document::FieldTree *m_tree{nullptr};
     quint64 m_token{0};
+    bool m_typeExtraction{false};
 
     // Ignora o removeRows() que a view manda depois de um drop com MoveAction.
     PendingMoveGuard m_pendingMove;

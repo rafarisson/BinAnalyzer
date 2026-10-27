@@ -24,15 +24,27 @@ QVariantList SchemaTreeModel::actions(const QModelIndex &index) const
                                     {QStringLiteral("enabled"), enabled}});
     };
 
-    return {
+    QVariantList list{
         action(QStringLiteral("insertBelow"), tr("Inserir campo abaixo"), hasParent),
         action(QStringLiteral("insertBelowParent"), tr("Inserir campo abaixo do pai"), hasGrandparent),
         action(QStringLiteral("insertInside"), tr("Inserir campo dentro"), true),
         action(QStringLiteral("remove"), tr("Remover campo"), hasParent)
     };
+
+    // Só onde se aplicam: a árvore de um tipo, por exemplo, não cria tipos.
+    if (m_typeExtraction && m_tree->canCollapseToType(field)) {
+        QVariantMap extract = action(QStringLiteral("extractType"), tr("Criar tipo a partir do grupo..."), true).toMap();
+        extract.insert(QStringLiteral("prompt"), tr("Novo tipo a partir de '%1'").arg(field->name()));
+        list << QVariant(extract);
+    }
+
+    if (m_tree->canInlineType(field))
+        list << action(QStringLiteral("inlineType"), tr("Converter tipo '%1' em grupo").arg(field->typeId()), true);
+
+    return list;
 }
 
-bool SchemaTreeModel::trigger(const QModelIndex &index, const QString &actionId)
+bool SchemaTreeModel::trigger(const QModelIndex &index, const QString &actionId, const QString &text)
 {
     schema::Field *field = m_tree ? itemFromIndex(index) : nullptr;
     if (!field)
@@ -49,6 +61,12 @@ bool SchemaTreeModel::trigger(const QModelIndex &index, const QString &actionId)
         ok = (created = m_tree->addInside(field)) != nullptr;
     else if (actionId == QLatin1String("remove"))
         ok = m_tree->removeField(field);
+    else if (actionId == QLatin1String("extractType") && m_typeExtraction && m_tree->canCollapseToType(field)) {
+        emit extractTypeRequested(field, text);
+        ok = true;
+    }
+    else if (actionId == QLatin1String("inlineType"))
+        ok = m_tree->inlineType(field);
 
     if (!ok)
         return false;

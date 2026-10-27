@@ -28,7 +28,17 @@ class TypeDefinitionController : public QObject
     // O rascunho foi editado e ainda não aplicado.
     Q_PROPERTY(bool modified READ isModified NOTIFY modifiedChanged)
 
+    // O tipo atual em relação ao de mesmo id na biblioteca de tipos.
+    Q_PROPERTY(LibraryState libraryState READ libraryState NOTIFY libraryStateChanged)
+
 public:
+
+    enum LibraryState {
+        NotInLibrary,
+        SameAsLibrary,
+        DiffersFromLibrary
+    };
+    Q_ENUM(LibraryState)
 
     explicit TypeDefinitionController(QObject *parent = nullptr);
 
@@ -46,6 +56,8 @@ public:
 
     bool isModified() const { return m_modified; }
 
+    LibraryState libraryState() const { return m_libraryState; }
+
     // Grava o rascunho como definição do tipo atual. Falha (com errorOccurred()) se a definição
     // for recusada, por exemplo sem campos.
     Q_INVOKABLE bool apply();
@@ -57,11 +69,18 @@ public:
     // Descarta as edições e volta à definição do documento.
     Q_INVOKABLE void restore();
 
+    // Remove o tipo atual. Falha (com errorOccurred()) se algum campo o usa.
+    Q_INVOKABLE bool removeType();
+
+    // Troca a definição do tipo atual pela da biblioteca, descartando as edições não aplicadas.
+    Q_INVOKABLE bool updateFromLibrary();
+
 signals:
 
     void typeIdsChanged();
     void currentTypeChanged();
     void modifiedChanged();
+    void libraryStateChanged();
 
     // A definição foi recusada; 'message' explica o motivo.
     void errorOccurred(const QString &message);
@@ -69,6 +88,8 @@ signals:
 private:
 
     void rebuild();
+    bool refreshTypeIds();
+    void updateLibraryState();
     void loadDraft();
     void setModified(bool modified);
 
@@ -78,6 +99,7 @@ private:
     QStringList m_typeIds;
     QString m_current;
     bool m_modified{false};
+    LibraryState m_libraryState{NotInLibrary};
 };
 
 } // namespace bina::presentation

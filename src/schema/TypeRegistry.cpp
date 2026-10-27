@@ -173,6 +173,27 @@ OperationResult TypeRegistry::replaceDefinition(const QString &id, std::unique_p
     return OperationResult::success();
 }
 
+OperationResult TypeRegistry::remove(const QString &id)
+{
+    DataType *type = m_types.value(id);
+
+    if (!type || !type->definition())
+        return OperationResult::failure(QCoreApplication::translate("bina", "O tipo '%1' não é um tipo customizado").arg(id));
+
+    for (const QString &other : std::as_const(m_order)) {
+        const Field *definition = this->definition(other);
+
+        if (other != id && definition && usesType(definition, id))
+            return OperationResult::failure(QCoreApplication::translate("bina", "O tipo '%1' é usado pelo tipo '%2'").arg(id, other));
+    }
+
+    m_types.remove(id);
+    m_order.removeOne(id);
+    delete type;
+
+    return OperationResult::success();
+}
+
 OperationResult TypeRegistry::addStructMarker(const QString &id)
 {
     QString normalized;

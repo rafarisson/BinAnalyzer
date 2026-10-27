@@ -1,20 +1,37 @@
 #pragma once
 
 #include <QObject>
+#include <QStringList>
 
 #include "bina/schema/Field.h"
+#include "bina/schema/OperationResult.h"
 
 namespace bina::format { class FormatRegistry; }
 namespace bina::schema { class TypeRegistry; }
 
 namespace bina::document {
 
+// Tipos de fora do registro que a árvore pode oferecer aos campos (os da biblioteca, para a árvore da
+// estrutura). Sem uma fonte, a árvore só usa os tipos do registro.
+class TypeSource
+{
+public:
+
+    virtual ~TypeSource() = default;
+
+    // Tipos que ainda não estão no registro mas podem ser trazidos para ele.
+    virtual QStringList availableTypeIds() const = 0;
+
+    // Traz 'id' para o registro, com os tipos e formatos de que ele depende.
+    virtual schema::OperationResult provideType(const QString &id) = 0;
+};
+
 // A árvore de campos da estrutura. Concentra as alterações (com sinais para as views) e mantém
 // os auto_pad coerentes com o alinhamento.
 //
 // A implementação está dividida por assunto:
 //   FieldTree.cpp         consultas, troca da raiz e alteração de um campo (nome, tipo, count, formato)
-//   FieldTreeEditing.cpp  inserir, remover, mover, soltar e agrupar campos
+//   FieldTreeEditing.cpp  inserir, remover, mover, soltar e agrupar campos; extrair e expandir tipos
 //   FieldTreePadding.cpp  aplicação dos auto_pad (a regra está em PaddingSynchronizer)
 class FieldTree : public QObject
 {
@@ -38,6 +55,10 @@ public:
     // usado pelos campos: a definição conteria a si mesma.
     void setEditedType(const QString &id) { m_editedType = id; }
 
+    // Opcional: com ela, os tipos da fonte podem ser escolhidos (são trazidos para o registro ao serem
+    // usados).
+    void setTypeSource(TypeSource *source) { m_typeSource = source; }
+
     // Opcional: quando definido, setFormatId() só aceita formatos compatíveis com o campo.
     void setFormatRegistry(const format::FormatRegistry *formats) { m_formats = formats; }
 
@@ -45,7 +66,7 @@ public:
     // Permite detectar referências por posição que ficaram desatualizadas.
     quint32 revision() const { return m_revision; }
 
-    // Tipos que um campo pode usar (primitivos e customizados); "struct" é implícito.
+    // Tipos que um campo pode usar (primitivos, customizados e os da biblioteca); "struct" é implícito.
     QStringList typeIds() const;
 
     // Formatos compatíveis com o tipo e o count do campo.
@@ -74,6 +95,16 @@ public:
     schema::Field *addAfterParent(schema::Field *field);     // irmão do pai, logo abaixo dele
     schema::Field *addInside(schema::Field *field);          // filho no fim (o campo vira struct)
     bool removeField(schema::Field *field);                  // o campo e seus filhos
+
+    // Um grupo passa a usar o tipo 'id', que já deve estar no registro com os mesmos campos: os filhos
+    // saem e o layout não muda. É a parte da árvore em Document::extractType().
+    bool canCollapseToType(const schema::Field *field) const;
+    bool collapseToType(schema::Field *field, const QString &id);
+
+    // O inverso: um campo de tipo customizado vira um grupo com uma cópia dos campos do tipo, para
+    // ser alterado só ali.
+    bool canInlineType(const schema::Field *field) const;
+    bool inlineType(schema::Field *field);
 
     enum DropZone {
         Before,     // como irmão, antes do alvo
@@ -130,6 +161,7 @@ private:
     int m_maxAlign{4};
     QString m_editedType;
     const format::FormatRegistry *m_formats{nullptr};
+    TypeSource *m_typeSource{nullptr};
     std::unique_ptr<schema::Field> m_root;
 };
 

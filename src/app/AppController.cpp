@@ -1,4 +1,6 @@
+#include <QDesktopServices>
 #include <QFileInfo>
+#include <QUrl>
 
 #include "bina/app/AppController.h"
 #include "bina/app/Paths.h"
@@ -12,6 +14,7 @@ AppController::AppController(QObject *parent)
     , m_exports{m_resultModel, m_tableModel, m_log}
 {
     m_schemaModel.setModel(m_document.fields());
+    m_schemaModel.setTypeExtractionEnabled(true);
     m_session.setDocument(&m_document);
     m_resultModel.setSession(&m_session);
     m_tableModel.setSource(&m_resultModel);
@@ -32,6 +35,12 @@ AppController::AppController(QObject *parent)
 
     connect(&m_log, &MessageLog::messageAdded, this, &AppController::messageAdded);
 
+    // O catálogo é o mesmo objeto; o documento só precisa saber que ele foi relido.
+    connect(&m_library, &TypeLibrary::changed, this, [this] {
+        m_document.setLibrary(&m_library.catalog());
+        emit typeLibraryChanged();
+    });
+
     connectMessages();
 }
 
@@ -51,6 +60,12 @@ void AppController::connectMessages()
     connect(&m_document, &document::Document::typeAdded, this, [this](const QString &id) {
         m_log.add(tr("Tipo '%1' criado.").arg(id));
     });
+    connect(&m_document, &document::Document::typeImported, this, [this](const QString &id) {
+        m_log.add(tr("Tipo '%1' copiado da biblioteca.").arg(id));
+    });
+    connect(&m_document, &document::Document::typeRemoved, this, [this](const QString &id) {
+        m_log.add(tr("Tipo '%1' removido.").arg(id));
+    });
     connect(&m_document, &document::Document::typeDefinitionChanged, this, [this](const QString &id) {
         m_log.add(m_dataPath.isEmpty()
                       ? tr("Tipo '%1' alterado.").arg(id)
@@ -61,6 +76,12 @@ void AppController::connectMessages()
     connect(&m_typeController, &presentation::TypeDefinitionController::errorOccurred, this, error);
     connect(m_typeController.draftModel(), &model::SchemaTreeModel::errorOccurred, this, error);
     connect(&m_schemaModel, &model::SchemaTreeModel::errorOccurred, this, error);
+
+    connect(&m_schemaModel, &model::SchemaTreeModel::extractTypeRequested, this,
+            [this](schema::Field *group, const QString &id) {
+        if (const schema::OperationResult extracted = m_document.extractType(group, id); !extracted)
+            m_log.add(extracted.error(), true);
+    });
 
     // Falhas da análise (por exemplo, estrutura vazia) viram mensagem uma única vez. As falhas ao
     // abrir o arquivo são reportadas por openData(), com o caminho.
@@ -146,6 +167,36 @@ bool AppController::openData(const QString &pathOrUrl)
 void AppController::reanalyze()
 {
     m_session.reanalyze();
+}
+
+void AppController::openTypeLibrary(const QString &directory, const QString &defaults)
+{
+    m_library.open(directory, defaults);
+}
+
+bool AppController::saveTypeToLibrary(const QString &id)
+{
+    if (const schema::OperationResult saved = m_library.save(m_document, id); !saved) {
+        m_log.add(tr("Não foi possível salvar o tipo '%1' na biblioteca: %2").arg(id, saved.error()), true);
+        return false;
+    }
+
+    m_log.add(tr("Tipo '%1' salvo na biblioteca.").arg(id));
+
+    return true;
+}
+
+void AppController::restoreDefaultTypes()
+{
+    const int copied = m_library.restoreDefaults();
+
+    m_log.add(tr("Tipos padrão restaurados na biblioteca: %n arquivo(s).", nullptr, copied));
+}
+
+void AppController::openTypeLibraryFolder()
+{
+    if (!m_library.directory().isEmpty())
+        QDesktopServices::openUrl(QUrl::fromLocalFile(m_library.directory()));
 }
 
 void AppController::clearMessages()

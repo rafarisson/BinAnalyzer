@@ -89,6 +89,23 @@ Item {
         id: contextMenu
 
         itemModel: root.model
+
+        onTextRequested: (index, actionId, prompt) => {
+            textInput.targetIndex = index
+            textInput.actionId = actionId
+            textInput.title = prompt
+            textInput.open()
+        }
+    }
+
+    // O texto de uma ação do menu (o id do tipo novo, por exemplo).
+    NewItemPopup {
+        id: textInput
+
+        property var targetIndex
+        property string actionId
+
+        onAccepted: name => root.model.trigger(targetIndex, actionId, name)
     }
 
     Connections {

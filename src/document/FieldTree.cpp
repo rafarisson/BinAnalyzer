@@ -52,6 +52,12 @@ QStringList FieldTree::typeIds() const
                 ids << type->id();
     }
 
+    if (m_typeSource) {
+        for (const QString &id : m_typeSource->availableTypeIds())
+            if (!ids.contains(id))
+                ids << id;
+    }
+
     return ids;
 }
 
@@ -116,8 +122,16 @@ bool FieldTree::setTypeId(schema::Field *field, const QString &id)
     }
 
     if (m_registry && !m_registry->contains(normalized)) {
-        reject(tr("Tipo desconhecido: '%1'.").arg(normalized));
-        return false;
+        // Um tipo da biblioteca é copiado para o documento ao ser usado.
+        if (!m_typeSource || !m_typeSource->availableTypeIds().contains(normalized)) {
+            reject(tr("Tipo desconhecido: '%1'.").arg(normalized));
+            return false;
+        }
+
+        if (const schema::OperationResult provided = m_typeSource->provideType(normalized); !provided) {
+            reject(provided.error());
+            return false;
+        }
     }
 
     if (usesEditedType(normalized)) {

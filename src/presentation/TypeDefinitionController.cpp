@@ -37,6 +37,24 @@ void TypeDefinitionController::setDocument(document::Document *document)
         // um tipo: o rascunho precisa ser refeito depois.
         connect(m_document, &document::Document::typesChanged, this, &TypeDefinitionController::rebuild);
 
+        // Um tipo novo (extraído da estrutura ou copiado da biblioteca) não muda os existentes: só a
+        // lista é refeita, e as edições do rascunho continuam.
+        const auto added = [this] {
+            const QString oldCurrent = m_current;
+
+            if (refreshTypeIds() && m_current != oldCurrent) {
+                loadDraft();
+                emit currentTypeChanged();
+            }
+
+            updateLibraryState();
+        };
+
+        connect(m_document, &document::Document::typeAdded, this, added);
+        connect(m_document, &document::Document::typeImported, this, added);
+        connect(m_document, &document::Document::typeDefinitionChanged, this, &TypeDefinitionController::updateLibraryState);
+        connect(m_document, &document::Document::libraryChanged, this, &TypeDefinitionController::updateLibraryState);
+
         // Os tamanhos e os auto_pad dependem do alinhamento máximo.
         connect(m_document, &document::Document::maxAlignChanged, this, [this] {
             const bool wasModified = m_modified;
@@ -60,6 +78,7 @@ void TypeDefinitionController::setCurrentType(const QString &id)
     loadDraft();
 
     emit currentTypeChanged();
+    updateLibraryState();
 }
 
 bool TypeDefinitionController::apply()
@@ -102,11 +121,55 @@ void TypeDefinitionController::restore()
     loadDraft();
 }
 
+bool TypeDefinitionController::removeType()
+{
+    if (!m_document || m_current.isEmpty())
+        return false;
+
+    // typesChanged() refaz a lista e escolhe outro tipo.
+    const schema::OperationResult result = m_document->removeType(m_current);
+
+    if (!result) {
+        emit errorOccurred(result.error());
+        return false;
+    }
+
+    return true;
+}
+
+bool TypeDefinitionController::updateFromLibrary()
+{
+    if (!m_document || m_current.isEmpty())
+        return false;
+
+    const schema::OperationResult result = m_document->updateTypeFromLibrary(m_current);
+
+    if (!result) {
+        emit errorOccurred(result.error());
+        return false;
+    }
+
+    return true;
+}
+
 // Refaz a lista de tipos customizados, mantendo o tipo atual se ele ainda existe.
 void TypeDefinitionController::rebuild()
 {
-    const QStringList oldIds = m_typeIds;
     const QString oldCurrent = m_current;
+
+    refreshTypeIds();
+    loadDraft();
+
+    if (m_current != oldCurrent)
+        emit currentTypeChanged();
+
+    updateLibraryState();
+}
+
+// A lista de tipos customizados; o tipo atual continua se ainda existe. Retorna se a lista mudou.
+bool TypeDefinitionController::refreshTypeIds()
+{
+    const QStringList oldIds = m_typeIds;
 
     m_typeIds.clear();
 
@@ -119,13 +182,25 @@ void TypeDefinitionController::rebuild()
 
     m_current = m_typeIds.contains(m_current) ? m_current : m_typeIds.value(0);
 
-    loadDraft();
+    if (m_typeIds == oldIds)
+        return false;
 
-    if (m_typeIds != oldIds)
-        emit typeIdsChanged();
+    emit typeIdsChanged();
 
-    if (m_current != oldCurrent)
-        emit currentTypeChanged();
+    return true;
+}
+
+void TypeDefinitionController::updateLibraryState()
+{
+    const LibraryState state = m_document && !m_current.isEmpty()
+                                   ? LibraryState(m_document->libraryState(m_current))
+                                   : NotInLibrary;
+
+    if (state == m_libraryState)
+        return;
+
+    m_libraryState = state;
+    emit libraryStateChanged();
 }
 
 // O rascunho recebe uma cópia da definição do tipo atual (ou nada, se não há tipos).

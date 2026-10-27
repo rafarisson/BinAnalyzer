@@ -37,6 +37,7 @@ ColumnLayout {
         TypePane {
             id: typePane
 
+            app: root.app
             typeController: root.app.typeController
         }
 

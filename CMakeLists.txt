@@ -59,6 +59,7 @@ set(BINA_QML_FILES
     qml/popups/OptionsPopup.qml
     qml/popups/MessagesPopup.qml
     qml/popups/NewItemPopup.qml
+    qml/popups/ConfirmPopup.qml
     qml/popups/StatusToast.qml
     qml/popups/StaleBanner.qml
 )
@@ -107,6 +108,14 @@ qt_add_resources(BinAnalyzerApp "samples"
     FILES
         samples/elements.json
         samples/elements.bin
+)
+
+# Os tipos padrão da biblioteca de tipos: copiados para a pasta do usuário na primeira execução.
+qt_add_resources(BinAnalyzerApp "types"
+    PREFIX "/types"
+    BASE samples
+    FILES
+        samples/struct_tm.json
 )
 
 if (BINA_UI_TEST_HOOKS)

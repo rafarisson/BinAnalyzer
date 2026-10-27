@@ -45,6 +45,13 @@ public:
     // Um tipo cujos campos usam 'target' (ele mesmo incluído), direta ou indiretamente.
     bool dependsOn(const QString &typeId, const QString &target) const;
 
+    // Algum campo de 'field' (os filhos, em qualquer nível) usa 'target', direta ou indiretamente.
+    bool usesType(const Field *field, const QString &target) const;
+
+    // Remove um tipo struct customizado. Recusa os demais e um tipo usado por outro tipo; quem
+    // chama confere se os campos da estrutura não o usam.
+    OperationResult remove(const QString &id);
+
     // Troca a definição de um tipo struct customizado (o id e o formato padrão continuam). A nova
     // definição segue as regras de add() e não pode conter o próprio tipo, nem por outro tipo.
     // checkReplacement() só valida; replaceDefinition() valida de novo e troca.
@@ -62,7 +69,6 @@ private:
     // examinado uma vez, mesmo quando é usado por muitos campos.
     bool dependsOn(const QString &typeId, const QString &target, QSet<QString> &checked) const;
     bool usesType(const Field *field, const QString &target, QSet<QString> &checked) const;
-    bool usesType(const Field *field, const QString &target) const;
     void insert(std::unique_ptr<DataType> type);
 
     QHash<QString, DataType *> m_types;

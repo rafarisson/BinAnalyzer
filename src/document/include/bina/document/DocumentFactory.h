@@ -24,13 +24,14 @@ public:
 
     static DocumentDto toDto(const Document &doc);
 
+    // Conversão de um campo (e seus filhos). toFieldDto() deixa os auto_pad de fora.
+    static std::unique_ptr<schema::Field> buildField(const DocumentFieldDto &data);
+    static DocumentFieldDto toFieldDto(const schema::Field &field);
+
 private:
 
     bool validateNames(const DocumentFieldDto &parent);
     bool validateFormats(const schema::Field &field, const schema::TypeRegistry &types, const format::FormatRegistry &formats);
-
-    static std::unique_ptr<schema::Field> buildField(const DocumentFieldDto &data);
-    static DocumentFieldDto toFieldDto(const schema::Field &field);
 
     QString m_error;
 };

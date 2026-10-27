@@ -13,6 +13,7 @@ qt_add_qml_module(bina_app
         include/bina/app/MessageLog.h MessageLog.cpp
         include/bina/app/Paths.h Paths.cpp
         include/bina/app/QmlTypes.h
+        include/bina/app/TypeLibrary.h TypeLibrary.cpp
 )
 
 add_library(Bina::app ALIAS bina_app)

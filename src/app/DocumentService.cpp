@@ -28,6 +28,8 @@ DocumentService::DocumentService(document::Document &document, MessageLog &log, 
     connect(&m_document, &document::Document::formatsChanged, this, markDirty);
     connect(&m_document, &document::Document::formatAdded, this, markDirty);
     connect(&m_document, &document::Document::typeAdded, this, markDirty);
+    connect(&m_document, &document::Document::typeImported, this, markDirty);
+    connect(&m_document, &document::Document::typeRemoved, this, markDirty);
     connect(&m_document, &document::Document::typeDefinitionChanged, this, markDirty);
 }
 

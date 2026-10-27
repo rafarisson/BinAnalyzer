@@ -1,10 +1,13 @@
-// Inserir, remover, mover, soltar e agrupar campos (parte de FieldTree).
+// Inserir, remover, mover, soltar e agrupar campos; extrair um tipo de um grupo e o inverso (parte de
+// FieldTree).
 
 #include "bina/document/FieldTree.h"
 
 // bina::schema
 #include "bina/schema/LayoutCalculator.h"
 #include "bina/schema/Builtins.h"
+#include "bina/schema/Identifier.h"
+#include "bina/schema/TypeRegistry.h"
 
 namespace bina::document {
 
@@ -273,6 +276,66 @@ int FieldTree::calculateDestinationRowForMove(const schema::Field *srcParent, in
         finalRow--;
 
     return qMax(finalRow, 0);
+}
+
+bool FieldTree::canCollapseToType(const schema::Field *field) const
+{
+    return field && field != m_root.get() && !field->isAutoPad() && field->childCount() > 0;
+}
+
+bool FieldTree::collapseToType(schema::Field *field, const QString &id)
+{
+    const QString normalized = schema::normalizeIdentifier(id);
+
+    if (!canCollapseToType(field) || !m_registry || !m_registry->definition(normalized))
+        return false;
+
+    touch();
+    emit aboutToRemove(field, 0, field->childCount() - 1);
+
+    while (field->childCount() > 0)
+        field->removeChild(field->childCount() - 1);
+
+    emit removed();
+
+    field->setTypeId(normalized);
+    dropIncompatibleFormat(field);
+    updatePadding(field->parent());
+    emit fieldChanged(field);
+
+    return true;
+}
+
+bool FieldTree::canInlineType(const schema::Field *field) const
+{
+    return m_registry && field && field != m_root.get() && !field->isAutoPad() && field->childCount() == 0
+           && m_registry->definition(field->typeId()) != nullptr;
+}
+
+bool FieldTree::inlineType(schema::Field *field)
+{
+    if (!canInlineType(field))
+        return false;
+
+    const schema::Field *definition = m_registry->definition(field->typeId());
+    const int count = definition->childCount();
+
+    touch();
+    emit aboutToInsert(field, 0, count - 1);
+
+    for (int i = 0; i < count; ++i)
+        field->insertExistingChild(i, definition->child(i)->clone(false));
+
+    field->setTypeId(schema::PrimitiveTypes::kStruct);
+
+    emit inserted();
+
+    dropIncompatibleFormat(field);
+    normalize(field);
+    updatePadding(field->parent());
+    emit fieldChanged(field);
+
+    return true;
 }
 
 } // namespace bina::document

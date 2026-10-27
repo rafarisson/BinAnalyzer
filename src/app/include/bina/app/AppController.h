@@ -7,6 +7,7 @@
 #include "bina/app/DocumentService.h"
 #include "bina/app/ExportService.h"
 #include "bina/app/MessageLog.h"
+#include "bina/app/TypeLibrary.h"
 #include "bina/document/Document.h"
 #include "bina/model/ResultTableModel.h"
 #include "bina/model/ResultTreeModel.h"
@@ -23,6 +24,7 @@ namespace bina::app {
 //   DocumentService  abrir, criar e salvar a estrutura; alterações não salvas
 //   ExportService    exportar o resultado
 //   MessageLog       mensagens para o usuário
+//   TypeLibrary      a biblioteca de tipos (os tipos copiados para a estrutura ao serem usados)
 class AppController : public QObject
 {
     Q_OBJECT
@@ -41,6 +43,9 @@ class AppController : public QObject
     Q_PROPERTY(QString dataPath READ dataPath NOTIFY dataPathChanged)
     Q_PROPERTY(bool dirty READ isDirty NOTIFY dirtyChanged)
     Q_PROPERTY(QString windowTitle READ windowTitle NOTIFY titleChanged)
+
+    // A pasta da biblioteca de tipos (vazia antes de openTypeLibrary()).
+    Q_PROPERTY(QString typeLibraryPath READ typeLibraryPath NOTIFY typeLibraryChanged)
 
     // Opções do documento.
     Q_PROPERTY(bool bigEndian READ bigEndian WRITE setBigEndian NOTIFY optionsChanged)
@@ -64,6 +69,13 @@ public:
     bool isDirty() const { return m_documents.isDirty(); }
     QString windowTitle() const;
 
+    QString typeLibraryPath() const { return m_library.directory(); }
+
+    // Usa a pasta como biblioteca de tipos; na primeira vez ela é criada com os tipos padrão de
+    // 'defaults' (ver TypeLibrary).
+    void openTypeLibrary(const QString &directory, const QString &defaults = QStringLiteral(":/types"));
+    const TypeLibrary &typeLibrary() const { return m_library; }
+
     // As mensagens como exibidas ("[hh:mm:ss] texto"), da mais antiga à mais nova.
     QStringList messages() const { return m_log.lines(); }
 
@@ -84,6 +96,13 @@ public:
     Q_INVOKABLE bool exportResult(const QString &pathOrUrl);
 
     Q_INVOKABLE void reanalyze();
+
+    // Biblioteca de tipos: gravar um tipo do documento (substitui o de mesmo id), saber se já
+    // existe, recriar os tipos padrão e abrir a pasta no gerenciador de arquivos.
+    Q_INVOKABLE bool saveTypeToLibrary(const QString &id);
+    Q_INVOKABLE bool libraryHasType(const QString &id) const { return m_library.contains(id); }
+    Q_INVOKABLE void restoreDefaultTypes();
+    Q_INVOKABLE void openTypeLibraryFolder();
     Q_INVOKABLE void clearMessages();
 
 signals:
@@ -93,6 +112,7 @@ signals:
     void dirtyChanged();
     void titleChanged();
     void optionsChanged();
+    void typeLibraryChanged();
 
     // Uma mensagem nova (para um aviso rápido na janela).
     void messageAdded(const QString &text, bool isError);
@@ -103,6 +123,7 @@ private:
 
     // Declarados na ordem de dependência: cada um só usa os anteriores, e é destruído antes deles.
     MessageLog m_log;
+    TypeLibrary m_library{m_log};
     document::Document m_document;
     session::AnalysisSession m_session;
     model::SchemaTreeModel m_schemaModel;
