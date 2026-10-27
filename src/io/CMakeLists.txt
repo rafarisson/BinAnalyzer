@@ -1,0 +1,18 @@
+bina_add_library(io
+    SOURCES
+        include/bina/io/Codecs.h
+        include/bina/io/DocumentImporter.h
+        include/bina/io/Exporter.h
+        include/bina/io/JsonDocumentExporter.h
+        include/bina/io/JsonDocumentImporter.h
+        include/bina/io/JsonKeys.h
+        include/bina/io/ResultDto.h
+        include/bina/io/ResultExporters.h
+        Codecs.cpp
+        DocumentImporter.cpp
+        JsonDocumentExporter.cpp
+        JsonDocumentImporter.cpp
+        ResultExporters.cpp
+    DEPENDS
+        Bina::document
+)

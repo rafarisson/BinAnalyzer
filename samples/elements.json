@@ -1,0 +1,140 @@
+{
+    "byteOrder": "little",
+    "elements": [
+        {
+            "count": 4,
+            "name": "magic",
+            "type": "char"
+        },
+        {
+            "name": "version",
+            "type": "version_info"
+        },
+        {
+            "elements": [
+                {
+                    "formatter": "bin",
+                    "name": "flags",
+                    "type": "uint8"
+                },
+                {
+                    "name": "bone_count",
+                    "type": "uint16"
+                },
+                {
+                    "elements": [
+                        {
+                            "name": "min",
+                            "type": "vec3"
+                        },
+                        {
+                            "name": "max",
+                            "type": "vec3"
+                        },
+                        {
+                            "count": 2,
+                            "elements": [
+                                {
+                                    "name": "id",
+                                    "type": "uint8"
+                                },
+                                {
+                                    "name": "weight",
+                                    "type": "double"
+                                }
+                            ],
+                            "name": "extra",
+                            "type": "struct"
+                        }
+                    ],
+                    "name": "bounds",
+                    "type": "struct"
+                }
+            ],
+            "name": "header",
+            "type": "struct"
+        },
+        {
+            "count": 3,
+            "name": "bones",
+            "type": "bone"
+        },
+        {
+            "formatter": "hex",
+            "name": "checksum",
+            "type": "uint32"
+        }
+    ],
+    "formatters": [
+        {
+            "id": "version_text",
+            "pattern": "v%(major)d.%(minor)d.%(patch)d"
+        },
+        {
+            "id": "point",
+            "pattern": "(%(x)g, %(y)g, %(z)g)"
+        }
+    ],
+    "maxAlign": 4,
+    "types": [
+        {
+            "elements": [
+                {
+                    "name": "x",
+                    "type": "float"
+                },
+                {
+                    "name": "y",
+                    "type": "float"
+                },
+                {
+                    "name": "z",
+                    "type": "float"
+                }
+            ],
+            "formatter": "point",
+            "id": "vec3"
+        },
+        {
+            "elements": [
+                {
+                    "name": "major",
+                    "type": "uint8"
+                },
+                {
+                    "name": "minor",
+                    "type": "uint8"
+                },
+                {
+                    "name": "patch",
+                    "type": "uint16"
+                }
+            ],
+            "formatter": "version_text",
+            "id": "version_info"
+        },
+        {
+            "elements": [
+                {
+                    "count": 15,
+                    "name": "name",
+                    "type": "char"
+                },
+                {
+                    "name": "parent",
+                    "type": "int16"
+                },
+                {
+                    "name": "position",
+                    "type": "vec3"
+                },
+                {
+                    "name": "rotation",
+                    "type": "vec3"
+                }
+            ],
+            "id": "bone"
+        }
+    ],
+    "version": 1
+}

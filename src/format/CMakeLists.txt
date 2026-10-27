@@ -1,0 +1,21 @@
+bina_add_library(format
+    SOURCES
+        include/bina/format/BuiltinFormatters.h
+        include/bina/format/FieldFormat.h
+        include/bina/format/FormatRegistry.h
+        include/bina/format/Formatter.h
+        include/bina/format/PatternPreview.h
+        include/bina/format/PrintfFormat.h
+        include/bina/format/Value.h
+        include/bina/format/ValueDecoder.h
+        BuiltinFormatters.cpp
+        FieldFormat.cpp
+        FormatRegistry.cpp
+        Formatter.cpp
+        PatternPreview.cpp
+        PrintfFormat.cpp
+        Value.cpp
+        ValueDecoder.cpp
+    DEPENDS
+        Bina::schema
+)

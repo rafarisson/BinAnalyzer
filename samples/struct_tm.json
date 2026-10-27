@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "maxAlign": 4,
+  "byteOrder": "little",
+  "formatters": [
+    {
+      "id": "tm_datetime",
+      "pattern": "%(tm_year+1900)04d-%(tm_mon+1)02d-%(tm_mday)02d %(tm_hour)02d:%(tm_min)02d:%(tm_sec)02d"
+    }
+  ],
+  "types": [
+    {
+      "id": "struct_tm",
+      "elements": [
+        {
+          "name": "tm_sec",
+          "type": "int32"
+        },
+        {
+          "name": "tm_min",
+          "type": "int32"
+        },
+        {
+          "name": "tm_hour",
+          "type": "int32"
+        },
+        {
+          "name": "tm_mday",
+          "type": "int32"
+        },
+        {
+          "name": "tm_mon",
+          "type": "int32"
+        },
+        {
+          "name": "tm_year",
+          "type": "int32"
+        },
+        {
+          "name": "tm_wday",
+          "type": "int32"
+        },
+        {
+          "name": "tm_yday",
+          "type": "int32"
+        },
+        {
+          "name": "tm_isdst",
+          "type": "int32"
+        }
+      ],
+      "formatter": "tm_datetime"
+    }
+  ]
+}

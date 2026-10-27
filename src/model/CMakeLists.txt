@@ -1,0 +1,27 @@
+bina_add_library(model
+    SOURCES
+        include/bina/model/DropTargetResolver.h
+        include/bina/model/EditorRoles.h
+        include/bina/model/FieldMimeCodec.h
+        include/bina/model/FieldRef.h
+        include/bina/model/PendingMoveGuard.h
+        include/bina/model/ResultTableModel.h
+        include/bina/model/ResultTreeModel.h
+        include/bina/model/SchemaColumns.h
+        include/bina/model/SchemaTreeModel.h
+        DropTargetResolver.cpp
+        FieldMimeCodec.cpp
+        FieldRef.cpp
+        PendingMoveGuard.cpp
+        ResultTableModel.cpp
+        ResultTreeModel.cpp
+        SchemaColumns.cpp
+        SchemaTreeModel.cpp
+        SchemaTreeModelDragDrop.cpp
+        SchemaTreeModelEditing.cpp
+    DEPENDS
+        Bina::session
+        Bina::document
+        Bina::parse
+        Bina::format
+)

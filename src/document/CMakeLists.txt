@@ -1,0 +1,17 @@
+bina_add_library(document
+    SOURCES
+        include/bina/document/Document.h
+        include/bina/document/DocumentDto.h
+        include/bina/document/DocumentFactory.h
+        include/bina/document/FieldTree.h
+        include/bina/document/PaddingSynchronizer.h
+        Document.cpp
+        DocumentFactory.cpp
+        FieldTree.cpp
+        FieldTreeEditing.cpp
+        FieldTreePadding.cpp
+        PaddingSynchronizer.cpp
+    DEPENDS
+        Bina::schema
+        Bina::format
+)

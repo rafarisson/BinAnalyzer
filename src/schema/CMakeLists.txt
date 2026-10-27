@@ -1,0 +1,18 @@
+bina_add_library(schema
+    SOURCES
+        include/bina/schema/Builtins.h
+        include/bina/schema/DataType.h
+        include/bina/schema/Field.h
+        include/bina/schema/Identifier.h
+        include/bina/schema/LayoutCalculator.h
+        include/bina/schema/OperationResult.h
+        include/bina/schema/TypeRegistry.h
+        include/bina/schema/Types.h
+        DataType.cpp
+        Field.cpp
+        Identifier.cpp
+        LayoutCalculator.cpp
+        TypeRegistry.cpp
+    DEPENDS
+        Qt6::Core
+)

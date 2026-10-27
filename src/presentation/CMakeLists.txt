@@ -1,0 +1,11 @@
+bina_add_library(presentation
+    SOURCES
+        include/bina/presentation/FormatPatternController.h
+        include/bina/presentation/TypeDefinitionController.h
+        FormatPatternController.cpp
+        TypeDefinitionController.cpp
+    DEPENDS
+        Bina::model
+        Bina::document
+        Bina::format
+)

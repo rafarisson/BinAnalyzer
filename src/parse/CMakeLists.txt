@@ -1,0 +1,9 @@
+bina_add_library(parse
+    SOURCES
+        include/bina/parse/BinaryParser.h
+        include/bina/parse/ParsedNode.h
+        BinaryParser.cpp
+    DEPENDS
+        Bina::schema
+        Bina::format
+)

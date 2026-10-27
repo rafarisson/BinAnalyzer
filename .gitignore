@@ -54,3 +54,10 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
+
+# Build e IDE
+/build/
+/build-*/
+/.qtcreator/
+CMakeLists.txt.user*
+*.user
