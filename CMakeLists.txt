@@ -41,6 +41,8 @@ set(BINA_QML_FILES
     qml/style/Icons.qml
     qml/controls/Icon.qml
     qml/controls/IconButton.qml
+    qml/controls/RowBackground.qml
+    qml/controls/SelectableTreeView.qml
     qml/panes/SchemaPane.qml
     qml/panes/TypePane.qml
     qml/panes/FormatPane.qml

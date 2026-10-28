@@ -58,7 +58,7 @@ Item {
                 onTapped: tree.forceActiveFocus()
             }
 
-            TreeView {
+            SelectableTreeView {
                 id: tree
 
                 anchors.fill: parent

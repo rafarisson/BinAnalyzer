@@ -84,7 +84,7 @@ Item {
             Layout.fillWidth: true
         }
 
-        TreeView {
+        SelectableTreeView {
             id: tree
 
             clip: true

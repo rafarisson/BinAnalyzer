@@ -25,6 +25,10 @@ QtObject {
     readonly property color headerBorder: dark ? "#3a3d42" : "#d5d9de"
     readonly property color accent: dark ? "#3b82e0" : "#1f6fd6"
     readonly property color accentText: "#ffffff"
+
+    // Linha selecionada: fundo azul claro e contorno azul na linha inteira.
+    readonly property color selectionFill: dark ? "#223a57" : "#e3eefc"
+    readonly property color selectionBorder: dark ? "#4d8fe0" : "#5b9aea"
     readonly property color badgeBackground: dark ? "#3a3d42" : "#dde1e6"
 
     // Cor da coluna de tipo, por categoria.

@@ -21,13 +21,21 @@ TreeViewDelegate {
 
     implicitHeight: Theme.rowHeight
 
+    // O mesmo fundo da tabela: linhas alternadas e a linha selecionada com contorno.
+    background: RowBackground {
+        selected: cell.row === cell.treeView.highlightedRow
+        row: cell.row
+        column: cell.column
+        columns: cell.treeView.columns
+        alternating: cell.treeView.alternatingRows
+    }
+
     contentItem: Label {
         text: cell.model && cell.model.display !== undefined ? cell.model.display : ""
         elide: Text.ElideRight
         opacity: cell.isAutoPad || cell.hiddenValue ? 0.55 : 1
         font.italic: cell.isAutoPad || cell.hiddenValue
-        color: cell.highlighted ? cell.palette.highlightedText
-               : cell.column === 1 ? Theme.typeColor(text, cell.palette.buttonText)
+        color: cell.column === 1 ? Theme.typeColor(text, cell.palette.buttonText)
                : cell.palette.buttonText
         visible: !cell.editing
     }
