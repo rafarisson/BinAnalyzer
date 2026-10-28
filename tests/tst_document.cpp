@@ -431,6 +431,75 @@ private slots:
         QCOMPARE(doc->libraryState("uint8"), State::NotInLibrary);
     }
 
+    void headerSurvivesTheJsonRoundTrip()
+    {
+        const QByteArray json = R"({"version":1,"types":[
+            {"id":"hdr","header":true,"elements":[{"name":"magic","type":"uint32"}]},
+            {"id":"plain","elements":[{"name":"a","type":"uint8"}]}],
+            "header":"hdr","elements":[{"name":"v","type":"uint16"}]})";
+
+        auto doc = documentFromJson(json);
+        QVERIFY(doc);
+
+        QCOMPARE(doc->headerIds(), QStringList{QStringLiteral("hdr")});
+        QVERIFY(doc->isHeader(QStringLiteral("hdr")));
+        QVERIFY(!doc->isHeader(QStringLiteral("plain")));
+        QCOMPARE(doc->activeHeader(), QStringLiteral("hdr"));
+
+        auto again = documentFromJson(toJson(*doc));
+        QVERIFY(again);
+        QCOMPARE(again->headerIds(), doc->headerIds());
+        QCOMPARE(again->activeHeader(), QStringLiteral("hdr"));
+    }
+
+    void activeHeaderMustBeAHeader()
+    {
+        QString error;
+        auto doc = documentFromJson(R"({"version":1,"types":[
+            {"id":"plain","elements":[{"name":"a","type":"uint8"}]}],
+            "header":"plain","elements":[{"name":"v","type":"uint16"}]})", &error);
+
+        QVERIFY(!doc);
+        QVERIFY(!error.isEmpty());
+    }
+
+    void headerCanBeAddedActivatedAndRemoved()
+    {
+        auto doc = sampleDocument();
+        QVERIFY(doc);
+
+        QSignalSpy active(doc.get(), &bina::document::Document::activeHeaderChanged);
+
+        QVERIFY(doc->addHeader(QStringLiteral("hdr")));
+        QVERIFY(doc->isHeader(QStringLiteral("hdr")));
+        QVERIFY(!doc->setActiveHeader(QStringLiteral("struct_tm")));   // não é um cabeçalho
+        QVERIFY(doc->setActiveHeader(QStringLiteral("hdr")));
+        QCOMPARE(active.size(), 1);
+        QVERIFY(doc->activeHeaderDefinition());
+
+        QVERIFY(doc->removeType(QStringLiteral("hdr")));
+        QVERIFY(doc->activeHeader().isEmpty());
+        QVERIFY(!doc->isHeader(QStringLiteral("hdr")));
+        QCOMPARE(active.size(), 2);
+    }
+
+    void libraryHeadersAreKeptApartFromTypes()
+    {
+        const bina::document::TypeCatalog library = catalogFromJson(R"({"version":1,"types":[
+            {"id":"hdr","header":true,"elements":[{"name":"magic","type":"uint32"}]},
+            {"id":"plain","elements":[{"name":"a","type":"uint8"}]}],"elements":[]})");
+
+        bina::document::Document doc;
+        doc.setLibrary(&library);
+
+        QCOMPARE(doc.availableLibraryHeaderIds(), QStringList{QStringLiteral("hdr")});
+        QCOMPARE(doc.availableLibraryTypeIds(), QStringList{QStringLiteral("plain")});
+
+        QVERIFY(doc.importType(QStringLiteral("hdr")));
+        QVERIFY(doc.isHeader(QStringLiteral("hdr")));
+        QVERIFY(doc.availableLibraryHeaderIds().isEmpty());
+    }
+
     void theSameTypeIsReportedAsSame()
     {
         auto doc = sampleDocument("struct_tm.json");

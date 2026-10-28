@@ -62,11 +62,17 @@ bool JsonDocumentExporter::write(QIODevice *device, const document::DocumentDto 
         o[kId] = t.id;
         if (!t.defaultFormatter.isEmpty())
             o[kFormatter] = t.defaultFormatter;
+        if (t.header)
+            o[kHeader] = true;
         o[kElements] = fieldsToJson(t.definition.children);
         types.append(o);
     }
 
     obj[kTypes] = types;
+
+    if (!data.header.isEmpty())
+        obj[kHeader] = data.header;
+
     obj[kElements] = fieldsToJson(data.root.children);
 
     return writeAll(device, QJsonDocument(obj).toJson(QJsonDocument::Indented));

@@ -41,6 +41,8 @@ schema::OperationResult DocumentFactory::create(const DocumentDto &data, Documen
             return added;
     }
 
+    QStringList headerIds;
+
     for (const DocumentTypeDto &type : data.types) {
         if (!validateNames(type.definition))
             return OperationResult::failure(m_error);
@@ -56,6 +58,16 @@ schema::OperationResult DocumentFactory::create(const DocumentDto &data, Documen
 
         if (!validateFormats(*registry->definition(schema::normalizeIdentifier(type.id)), *registry, *formats))
             return OperationResult::failure(m_error);
+
+        if (type.header)
+            headerIds << schema::normalizeIdentifier(type.id);
+    }
+
+    const QString activeHeader = data.header.isEmpty() ? QString() : schema::normalizeIdentifier(data.header);
+
+    if (!activeHeader.isEmpty() && !headerIds.contains(activeHeader)) {
+        return OperationResult::failure(QCoreApplication::translate("bina", "O cabeçalho '%1' não é um tipo marcado como cabeçalho")
+                                            .arg(data.header));
     }
 
     if (!validateNames(data.root))
@@ -74,6 +86,7 @@ schema::OperationResult DocumentFactory::create(const DocumentDto &data, Documen
     const QSysInfo::Endian byteOrder = data.bigEndian ? QSysInfo::BigEndian : QSysInfo::LittleEndian;
     const bool byteOrderChanged = out.m_byteOrder != byteOrder;
     const bool maxAlignChanged = out.m_maxAlign != data.maxAlign;
+    const bool activeHeaderChanged = out.m_activeHeader != activeHeader;
 
     emit out.typesAboutToChange();
 
@@ -82,12 +95,17 @@ schema::OperationResult DocumentFactory::create(const DocumentDto &data, Documen
     out.m_maxAlign = data.maxAlign;
     out.m_registry = std::move(registry);
     out.m_formats = std::move(formats);
+    out.m_headerIds = headerIds;
+    out.m_activeHeader = activeHeader;
     out.m_fields->setRegistry(out.m_registry.get());
     out.m_fields->setMaxAlign(data.maxAlign);
     out.m_fields->setFormatRegistry(out.m_formats.get());
     out.m_fields->setRoot(std::move(root));
 
     emit out.typesChanged();
+
+    if (activeHeaderChanged)
+        emit out.activeHeaderChanged();
 
     if (byteOrderChanged)
         emit out.byteOrderChanged();
@@ -115,9 +133,12 @@ DocumentDto DocumentFactory::toDto(const Document &doc)
         DocumentTypeDto t;
         t.id = type->id();
         t.defaultFormatter = type->formatId();
+        t.header = doc.isHeader(type->id());
         t.definition = toFieldDto(*type->definition());
         dto.types.append(t);
     }
+
+    dto.header = doc.activeHeader();
 
     if (doc.fields()->root())
         dto.root = toFieldDto(*doc.fields()->root());

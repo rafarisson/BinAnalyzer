@@ -136,6 +136,65 @@ private slots:
         QVERIFY(result.records.front().truncated);
     }
 
+    // Cabeçalho de 8 bytes (uint32 + uint16 + 2 de padding) e registros de 2 bytes.
+    void headerIsReadBeforeTheRecords()
+    {
+        auto doc = documentFromJson(R"({"version":1,"types":[
+            {"id":"hdr","header":true,"elements":[{"name":"magic","type":"uint32"},{"name":"count","type":"uint16"}]}],
+            "header":"hdr","elements":[{"name":"v","type":"uint16"}]})");
+        QVERIFY(doc);
+        QCOMPARE(doc->activeHeader(), QStringLiteral("hdr"));
+        QVERIFY(doc->activeHeaderDefinition());
+
+        QByteArray data(8, '\0');
+        data[0] = 0x2A;
+        data[4] = 3;
+        data.append(QByteArray::fromHex("01000200"));
+
+        bina::parse::BinaryParser parser(doc->types(), doc->byteOrder(), doc->maxAlign());
+        bina::parse::ParseResult header;
+        QVERIFY(parser.parseHeader(doc->activeHeaderDefinition(), data, header));
+
+        QCOMPARE(header.recordCount(), qint64(1));
+        QCOMPARE(header.recordSize, qint64(8));
+        QVERIFY(!header.records.front().truncated);
+        QCOMPARE(find(header.records.front(), "magic")->value.toUnsigned(), quint64(0x2A));
+        QCOMPARE(find(header.records.front(), "count")->value.toUnsigned(), quint64(3));
+
+        bina::parse::ParseResult result;
+        QVERIFY(parser.parse(doc->fields()->root(), data, result, -1, header.recordSize));
+
+        QCOMPARE(result.dataOffset, qint64(8));
+        QCOMPARE(result.recordCount(), qint64(2));
+        QCOMPARE(result.completeRecords(), qint64(2));
+        QCOMPARE(result.records.at(0).offset, qint64(8));
+        QCOMPARE(find(result.records.at(1), "v")->offset, qint64(10));
+        QCOMPARE(find(result.records.at(1), "v")->value.toUnsigned(), quint64(2));
+    }
+
+    void fileShorterThanTheHeaderGivesTruncatedNodes()
+    {
+        auto doc = documentFromJson(R"({"version":1,"types":[
+            {"id":"hdr","header":true,"elements":[{"name":"magic","type":"uint32"},{"name":"count","type":"uint32"}]}],
+            "header":"hdr","elements":[{"name":"v","type":"uint16"}]})");
+        QVERIFY(doc);
+
+        bina::parse::BinaryParser parser(doc->types(), doc->byteOrder(), doc->maxAlign());
+        bina::parse::ParseResult header;
+        QVERIFY(parser.parseHeader(doc->activeHeaderDefinition(), QByteArray(5, '\1'), header));
+
+        QVERIFY(header.records.front().truncated);
+        QVERIFY(!find(header.records.front(), "magic")->truncated);
+        QVERIFY(find(header.records.front(), "count")->truncated);
+
+        // Sem bytes depois do cabeçalho há um único registro, truncado (como um arquivo vazio).
+        bina::parse::ParseResult result;
+        QVERIFY(parser.parse(doc->fields()->root(), QByteArray(5, '\1'), result, -1, header.recordSize));
+
+        QCOMPARE(result.recordCount(), qint64(1));
+        QVERIFY(result.records.front().truncated);
+    }
+
     void byteOrderChangesTheValues()
     {
         auto doc = sampleDocument();

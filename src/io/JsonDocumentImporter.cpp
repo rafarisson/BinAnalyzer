@@ -75,8 +75,17 @@ bool JsonDocumentImporter::readDocument(const QJsonObject &obj, document::Docume
     for (auto it = obj.begin(); it != obj.end(); ++it) {
         const QString key = it.key();
         if (key != kVersion && key != kMaxAlign && key != kByteOrder && key != kFormatters
-            && key != kTypes && key != kElements)
+            && key != kTypes && key != kElements && key != kHeader)
             addWarning(QCoreApplication::translate("bina", "Chave desconhecida '%1' ignorada").arg(key));
+    }
+
+    if (obj.contains(kHeader)) {
+        if (!obj.value(kHeader).isString()) {
+            fail(QCoreApplication::translate("bina", "'header' deve ser o id de um cabeçalho"));
+            return false;
+        }
+
+        out.header = obj.value(kHeader).toString();
     }
 
     return readFormatters(obj, out) && readTypes(obj, out) && readFields(obj, out.root, 1);
@@ -135,6 +144,7 @@ bool JsonDocumentImporter::readTypes(const QJsonObject &obj, document::DocumentD
 
         t.id = o.value(kId).toString();
         t.defaultFormatter = o.value(kFormatter).toString();
+        t.header = o.value(kHeader).toBool(false);
 
         if (t.id.isEmpty()) {
             fail(QCoreApplication::translate("bina", "Um tipo precisa de 'id'"));

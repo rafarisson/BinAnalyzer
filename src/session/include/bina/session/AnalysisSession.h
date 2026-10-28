@@ -39,6 +39,8 @@ class AnalysisSession : public QObject
     Q_PROPERTY(bool stale READ isStale NOTIFY statusChanged)
     Q_PROPERTY(qint64 recordCount READ recordCount NOTIFY statusChanged)
     Q_PROPERTY(qint64 completeRecords READ completeRecords NOTIFY statusChanged)
+    Q_PROPERTY(bool hasHeader READ hasHeader NOTIFY statusChanged)
+    Q_PROPERTY(qint64 headerSize READ headerSize NOTIFY statusChanged)
     Q_PROPERTY(QString statusText READ statusText NOTIFY statusChanged)
     Q_PROPERTY(QString error READ error NOTIFY statusChanged)
 
@@ -64,6 +66,11 @@ public:
     qint64 recordCount() const { return m_hasResult ? m_summary.recordCount : 0; }
     qint64 completeRecords() const;
 
+    // O último resultado inclui o cabeçalho (o do documento, se estava ativo na análise) e o tamanho
+    // dele: os registros começam nesse offset do arquivo.
+    bool hasHeader() const { return m_hasResult && m_summary.headerSize > 0; }
+    qint64 headerSize() const { return m_hasResult ? m_summary.headerSize : 0; }
+
     // Caminho local ou URL "file:". Em caso de falha devolve false e error() diz o motivo.
     bool loadFile(const QString &path);
     void setBytes(const QByteArray &bytes);
@@ -74,6 +81,9 @@ public:
 
     // O resultado entregue por analyzed(), com o primeiro lote de registros. Vale uma vez por sinal.
     parse::ParseResult takeResult();
+
+    // O cabeçalho lido na mesma análise (vazio sem cabeçalho). Vale uma vez por analyzed().
+    parse::ParseResult takeHeaderResult();
 
     // 'result' (entregue por esta sessão) ainda pode receber registros: é da análise atual, a
     // estrutura não mudou desde então, faltam registros e nenhuma leitura falhou.
@@ -99,6 +109,7 @@ private:
         qint64 recordSize{0};
         qint64 dataSize{0};
         qint64 recordCount{0};
+        qint64 headerSize{0};
     };
 
     QByteArrayView data() const;
@@ -128,6 +139,7 @@ private:
     quint64 m_generation{0};    // muda a cada análise; identifica os resultados entregues
     Summary m_summary;
     parse::ParseResult m_pending;
+    parse::ParseResult m_pendingHeader;
 };
 
 } // namespace bina::session

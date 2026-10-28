@@ -76,6 +76,22 @@ public:
     // typeAdded().
     schema::OperationResult addType(const QString &id);
 
+    // Cabeçalhos: tipos customizados marcados como cabeçalho de arquivo. Seguem as regras dos tipos
+    // (definição, biblioteca, layout), mas ficam fora da lista de tipos dos campos. Pelo menos um
+    // pode estar ativo: então a análise lê a struct dele no início do arquivo e os registros vêm
+    // depois. Ativar ou desativar deixa os dados analisados desatualizados (activeHeaderChanged()).
+    bool isHeader(const QString &id) const { return m_headerIds.contains(id); }
+    QStringList headerIds() const { return m_headerIds; }
+    schema::OperationResult addHeader(const QString &id);
+
+    // Id do cabeçalho ativo, ou vazio. Recusa (false) um id que não é de um cabeçalho do documento.
+    QString activeHeader() const { return m_activeHeader; }
+    bool setActiveHeader(const QString &id);
+    const schema::Field *activeHeaderDefinition() const;
+
+    // Cabeçalhos da biblioteca que o documento ainda não tem.
+    QStringList availableLibraryHeaderIds() const;
+
     // Os campos de um grupo da estrutura viram um tipo customizado novo, 'id', e o grupo passa a
     // usá-lo; o layout não muda. Avisa por typeAdded().
     schema::OperationResult extractType(schema::Field *group, const QString &id);
@@ -118,6 +134,7 @@ signals:
     void typeAdded(const QString &id);
     void typeImported(const QString &id);
     void typeRemoved(const QString &id);
+    void activeHeaderChanged();
     void libraryChanged();
     void formatAdded(const QString &id);
 
@@ -136,6 +153,7 @@ private:
         QStringList formats;
     };
 
+    schema::OperationResult addEntry(const QString &id, bool header);
     schema::OperationResult planType(const QString &id, ImportPlan &plan, QStringList &visiting) const;
     schema::OperationResult planFields(const DocumentFieldDto &parent, ImportPlan &plan, QStringList &visiting) const;
     schema::OperationResult planFormat(const QString &id, ImportPlan &plan) const;
@@ -149,6 +167,8 @@ private:
     QSysInfo::Endian m_byteOrder{QSysInfo::LittleEndian};
     std::unique_ptr<schema::TypeRegistry> m_registry;
     std::unique_ptr<format::FormatRegistry> m_formats;
+    QStringList m_headerIds;
+    QString m_activeHeader;
 
     // Declarada por último: é destruída antes dos registros, para os quais guarda ponteiros.
     std::unique_ptr<FieldTree> m_fields;

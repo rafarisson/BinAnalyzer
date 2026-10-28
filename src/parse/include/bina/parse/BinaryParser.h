@@ -29,7 +29,15 @@ public:
     // Falha se o schema for inválido (tipo desconhecido, struct vazia). Dados faltando não são
     // erro: os campos além do fim ficam marcados como truncados.
     schema::OperationResult parse(const schema::Field *root, QByteArrayView data, ParseResult &out,
-                                  qint64 maxRecords = -1);
+    //
+    // Com 'dataOffset' (o tamanho do cabeçalho), os registros começam nesse offset do arquivo. Os
+    // offsets dos nós continuam sendo posições no arquivo.
+                                  qint64 maxRecords = -1, qint64 dataOffset = 0);
+
+    // Lê o cabeçalho: a struct 'definition' (a definição de um tipo) no início do arquivo. O resultado
+    // tem um único registro, truncado se o arquivo for menor que o cabeçalho; recordSize é o tamanho
+    // do cabeçalho, que é onde os registros começam.
+    schema::OperationResult parseHeader(const schema::Field *definition, QByteArrayView data, ParseResult &out);
 
     // Acrescenta a 'result' os próximos 'count' registros (todos os que faltam, se negativo).
     // 'data' e o schema devem ser os mesmos usados em parse().

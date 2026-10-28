@@ -55,6 +55,7 @@ void AnalysisSession::setDocument(document::Document *document)
     connect(m_document, &document::Document::byteOrderChanged, this, &AnalysisSession::markStale);
     connect(m_document, &document::Document::maxAlignChanged, this, &AnalysisSession::markStale);
     connect(m_document, &document::Document::formatsChanged, this, &AnalysisSession::markStale);
+    connect(m_document, &document::Document::activeHeaderChanged, this, &AnalysisSession::markStale);
 
     // Os nós apontam para os campos das definições dos tipos: ao trocá-las o resultado é descartado.
     connect(m_document, &document::Document::typesAboutToChange, this, &AnalysisSession::invalidate);
@@ -75,29 +76,43 @@ QString AnalysisSession::statusText() const
     if (!m_hasResult)
         return tr("Resultado descartado: a estrutura mudou. Analise o arquivo novamente.");
 
-    const qint64 complete = m_summary.recordSize > 0 ? m_summary.dataSize / m_summary.recordSize : 0;
-    const qint64 partial = m_summary.recordSize > 0 ? m_summary.dataSize % m_summary.recordSize : 0;
+    const qint64 header = m_summary.headerSize;
+
+    if (header > 0 && m_summary.dataSize < header)
+        return tr("Cabeçalho incompleto: %1 de %2 bytes").arg(m_summary.dataSize).arg(header);
+
+    // Os bytes depois do cabeçalho formam os registros.
+    const qint64 payload = m_summary.dataSize - header;
+    const qint64 complete = m_summary.recordSize > 0 ? payload / m_summary.recordSize : 0;
+    const qint64 partial = m_summary.recordSize > 0 ? payload % m_summary.recordSize : 0;
+    const QString prefix = header > 0 ? tr("Cabeçalho de %1 bytes · ").arg(header) : QString();
 
     if (m_summary.dataSize == 0)
         return tr("Arquivo vazio (registro de %1 bytes)").arg(m_summary.recordSize);
 
+    if (payload == 0)
+        return prefix + tr("sem registros (registro de %1 bytes)").arg(m_summary.recordSize);
+
     if (partial == 0 && complete == 1)
-        return tr("1 registro (%1 bytes)").arg(m_summary.recordSize);
+        return prefix + tr("1 registro (%1 bytes)").arg(m_summary.recordSize);
 
     if (partial == 0)
-        return tr("%1 registros de %2 bytes (%3 bytes)")
-                   .arg(complete).arg(m_summary.recordSize).arg(m_summary.dataSize);
+        return prefix + tr("%1 registros de %2 bytes (%3 bytes)")
+                            .arg(complete).arg(m_summary.recordSize).arg(m_summary.dataSize);
 
     if (complete == 0)
-        return tr("Registro incompleto: %1 de %2 bytes").arg(partial).arg(m_summary.recordSize);
+        return prefix + tr("Registro incompleto: %1 de %2 bytes").arg(partial).arg(m_summary.recordSize);
 
-    return tr("%1 registros completos + 1 incompleto (%2 de %3 bytes)")
-               .arg(complete).arg(partial).arg(m_summary.recordSize);
+    return prefix + tr("%1 registros completos + 1 incompleto (%2 de %3 bytes)")
+                        .arg(complete).arg(partial).arg(m_summary.recordSize);
 }
 
 qint64 AnalysisSession::completeRecords() const
 {
-    return m_hasResult && m_summary.recordSize > 0 ? m_summary.dataSize / m_summary.recordSize : 0;
+    if (!m_hasResult || m_summary.recordSize <= 0)
+        return 0;
+
+    return qMax<qint64>(0, m_summary.dataSize - m_summary.headerSize) / m_summary.recordSize;
 }
 
 bool AnalysisSession::loadFile(const QString &path)
@@ -153,6 +168,11 @@ void AnalysisSession::reanalyze()
 parse::ParseResult AnalysisSession::takeResult()
 {
     return std::exchange(m_pending, parse::ParseResult());
+}
+
+parse::ParseResult AnalysisSession::takeHeaderResult()
+{
+    return std::exchange(m_pendingHeader, parse::ParseResult());
 }
 
 bool AnalysisSession::canFetchMore(const parse::ParseResult &result) const
@@ -241,6 +261,7 @@ void AnalysisSession::reparse()
     m_reparseTimer.stop();
     m_stale = false;
     m_pending = parse::ParseResult();
+    m_pendingHeader = parse::ParseResult();
     m_fetchFailed = false;
     ++m_generation;
 
@@ -248,7 +269,17 @@ void AnalysisSession::reparse()
 
     if (m_document && m_hasData) {
         parse::BinaryParser parser(m_document->types(), m_document->byteOrder(), m_document->maxAlign());
-        const schema::OperationResult parsed = parser.parse(m_document->fields()->root(), data(), m_pending, kRecordBatch);
+        schema::OperationResult parsed = schema::OperationResult::success();
+
+        // O cabeçalho ativo é lido primeiro: os registros começam depois dele.
+        if (const schema::Field *header = m_document->activeHeaderDefinition()) {
+            parsed = parser.parseHeader(header, data(), m_pendingHeader);
+            m_pendingHeader.generation = m_generation;
+        }
+
+        if (parsed.ok())
+            parsed = parser.parse(m_document->fields()->root(), data(), m_pending, kRecordBatch, m_pendingHeader.recordSize);
+
         ok = parsed.ok();
         m_error = parsed.error();
         m_pending.generation = m_generation;
@@ -257,7 +288,7 @@ void AnalysisSession::reparse()
     }
 
     if (ok) {
-        m_summary = {m_pending.recordSize, m_pending.dataSize, m_pending.recordCount()};
+        m_summary = {m_pending.recordSize, m_pending.dataSize, m_pending.recordCount(), m_pendingHeader.recordSize};
         m_hasResult = true;
 
         emit analyzed();

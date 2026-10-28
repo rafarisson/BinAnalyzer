@@ -18,6 +18,7 @@ inline constexpr QLatin1StringView kName        ("name");
 inline constexpr QLatin1StringView kType        ("type");
 inline constexpr QLatin1StringView kCount       ("count");
 inline constexpr QLatin1StringView kFormatter   ("formatter");
+inline constexpr QLatin1StringView kHeader      ("header");
 
 }
 

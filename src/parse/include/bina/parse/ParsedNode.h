@@ -47,21 +47,25 @@ struct ParseResult
     std::deque<ParsedNode> records;
     qint64 recordSize{0};       // tamanho de um registro segundo o schema
     qint64 dataSize{0};         // tamanho do arquivo analisado
+    qint64 dataOffset{0};       // onde começam os registros: o tamanho do cabeçalho, se houver
+
+    // Bytes do arquivo depois do cabeçalho: os que formam registros.
+    qint64 payloadSize() const { return qMax<qint64>(0, dataSize - dataOffset); }
 
     // Registros do arquivo, lidos ou não (inclui o último, se incompleto).
     qint64 recordCount() const
     {
-        return recordSize > 0 ? qMax<qint64>(1, (dataSize + recordSize - 1) / recordSize) : 0;
+        return recordSize > 0 ? qMax<qint64>(1, (payloadSize() + recordSize - 1) / recordSize) : 0;
     }
 
     qint64 parsedCount() const { return qint64(records.size()); }
     bool isComplete() const { return parsedCount() >= recordCount(); }
 
     // Registros que cabem inteiros no arquivo.
-    qint64 completeRecords() const { return recordSize > 0 ? dataSize / recordSize : 0; }
+    qint64 completeRecords() const { return recordSize > 0 ? payloadSize() / recordSize : 0; }
 
     // Bytes do último registro, incompleto (0 se o arquivo termina em um limite de registro).
-    qint64 incompleteBytes() const { return recordSize > 0 ? dataSize % recordSize : 0; }
+    qint64 incompleteBytes() const { return recordSize > 0 ? payloadSize() % recordSize : 0; }
 };
 
 } // namespace bina::parse

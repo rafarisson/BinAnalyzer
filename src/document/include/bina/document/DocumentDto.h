@@ -26,6 +26,7 @@ struct DocumentTypeDto
 {
     QString id;
     QString defaultFormatter;
+    bool header = false;        // o tipo é um cabeçalho de arquivo (ver Document::addHeader())
     DocumentFieldDto definition;
 };
 
@@ -38,6 +39,7 @@ struct DocumentDto
     bool bigEndian = false;
     QList<DocumentFormatterDto> formatters;
     QList<DocumentTypeDto> types;
+    QString header;             // o cabeçalho ativo (id de um tipo com header); vazio: nenhum
     DocumentFieldDto root;
 };
 

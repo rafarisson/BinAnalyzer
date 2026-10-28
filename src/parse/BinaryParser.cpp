@@ -44,7 +44,32 @@ bool BinaryParser::fail(const QString &message)
     return false;
 }
 
-schema::OperationResult BinaryParser::parse(const schema::Field *root, QByteArrayView data, ParseResult &out, qint64 maxRecords)
+schema::OperationResult BinaryParser::parseHeader(const schema::Field *definition, QByteArrayView data, ParseResult &out)
+{
+    out = ParseResult();
+
+    if (!definition || !m_types)
+        return schema::OperationResult::failure(QCoreApplication::translate("bina", "Não há cabeçalho para analisar"));
+
+    const auto layout = m_calculator.structLayout(definition);
+    if (layout.size <= 0)
+        return schema::OperationResult::failure(QCoreApplication::translate("bina", "O cabeçalho está vazio ou usa tipos desconhecidos"));
+
+    ParseResult result;
+    result.structure = definition;
+    result.recordSize = layout.size;
+    result.dataSize = qMin<qint64>(data.size(), layout.size);
+
+    if (const schema::OperationResult more = parseMore(result, data.first(result.dataSize)); !more)
+        return more;
+
+    out = std::move(result);
+
+    return schema::OperationResult::success();
+}
+
+schema::OperationResult BinaryParser::parse(const schema::Field *root, QByteArrayView data, ParseResult &out,
+                                            qint64 maxRecords, qint64 dataOffset)
 {
     out = ParseResult();
 
@@ -60,6 +85,7 @@ schema::OperationResult BinaryParser::parse(const schema::Field *root, QByteArra
     result.recordSize = layout.size;
     result.dataSize = data.size();
 
+    result.dataOffset = qMax<qint64>(0, dataOffset);
     if (const schema::OperationResult more = parseMore(result, data, maxRecords); !more)
         return more;
 
@@ -89,7 +115,7 @@ schema::OperationResult BinaryParser::parseMore(ParseResult &result, QByteArrayV
         record.instance = i;
         record.target = format::targetFor(*root, *m_types);
 
-        if (!parseStructInstance(root, i * result.recordSize, result.recordSize, data, record))
+        if (!parseStructInstance(root, result.dataOffset + i * result.recordSize, result.recordSize, data, record))
             return schema::OperationResult::failure(m_error);
 
         result.records.push_back(std::move(record));

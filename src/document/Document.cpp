@@ -108,6 +108,16 @@ schema::OperationResult Document::setTypeDefinition(const QString &id, std::uniq
 
 schema::OperationResult Document::addType(const QString &id)
 {
+    return addEntry(id, false);
+}
+
+schema::OperationResult Document::addHeader(const QString &id)
+{
+    return addEntry(id, true);
+}
+
+schema::OperationResult Document::addEntry(const QString &id, bool header)
+{
     auto definition = std::make_unique<schema::Field>();
     schema::Field *first = definition->insertChild(0, QStringLiteral("%1_1").arg(schema::Names::kNewField));
 
@@ -121,10 +131,35 @@ schema::OperationResult Document::addType(const QString &id)
 
     const QString normalized = schema::normalizeIdentifier(id);
 
+    // Marcado antes dos avisos: quem os recebe já separa os cabeçalhos dos tipos.
+    if (header)
+        m_headerIds << normalized;
+
     emit typesChanged();
     emit typeAdded(normalized);
 
     return added;
+}
+
+bool Document::setActiveHeader(const QString &id)
+{
+    const QString normalized = id.isEmpty() ? QString() : schema::normalizeIdentifier(id);
+
+    if (!normalized.isEmpty() && !m_headerIds.contains(normalized))
+        return false;
+
+    if (normalized == m_activeHeader)
+        return true;
+
+    m_activeHeader = normalized;
+    emit activeHeaderChanged();
+
+    return true;
+}
+
+const schema::Field *Document::activeHeaderDefinition() const
+{
+    return m_activeHeader.isEmpty() ? nullptr : m_registry->definition(m_activeHeader);
 }
 
 schema::OperationResult Document::addFormat(const QString &id, const QString &spec)
@@ -144,9 +179,24 @@ schema::OperationResult Document::removeType(const QString &id)
     if (m_fields->root() && m_registry->definition(id) && m_registry->usesType(m_fields->root(), id))
         return OperationResult::failure(QCoreApplication::translate("bina", "O tipo '%1' é usado pela estrutura").arg(id));
 
-    // Nenhum campo usa o tipo: o resultado da análise não guarda ponteiros para ele.
+    // O resultado da análise guarda ponteiros para a definição de um cabeçalho, mas não para a de
+    // um tipo que nenhum campo usa.
+    const bool header = m_headerIds.contains(id);
+
+    if (header)
+        emit typesAboutToChange();
+
     if (const OperationResult removed = m_registry->remove(id); !removed)
         return removed;
+
+    if (header) {
+        m_headerIds.removeAll(id);
+
+        if (m_activeHeader == id) {
+            m_activeHeader.clear();
+            emit activeHeaderChanged();
+        }
+    }
 
     emit typesChanged();
     emit typeRemoved(id);
@@ -175,9 +225,28 @@ QStringList Document::availableLibraryTypeIds() const
     QStringList ids;
 
     if (m_library) {
-        for (const QString &id : m_library->typeIds())
-            if (!m_registry->contains(id))
+        for (const QString &id : m_library->typeIds()) {
+            const DocumentTypeDto *entry = m_library->type(id);
+
+            if (!m_registry->contains(id) && entry && !entry->header)
                 ids << id;
+        }
+    }
+
+    return ids;
+}
+
+QStringList Document::availableLibraryHeaderIds() const
+{
+    QStringList ids;
+
+    if (m_library) {
+        for (const QString &id : m_library->typeIds()) {
+            const DocumentTypeDto *entry = m_library->type(id);
+
+            if (!m_registry->contains(id) && entry && entry->header)
+                ids << id;
+        }
     }
 
     return ids;
@@ -350,6 +419,9 @@ schema::OperationResult Document::apply(const ImportPlan &plan)
             !added) {
             return added;
         }
+
+        if (entry->header)
+            m_headerIds << id;
 
         emit typeImported(id);
     }
