@@ -16,13 +16,16 @@ TreeViewDelegate {
 
     readonly property bool fieldEditable: column === 0 && !isAutoPad && !(controller && controller.menuOpen)
 
+    // Campo com o formato "hidden": esmaecido, como o auto_pad.
+    readonly property bool hiddenValue: cell.model && cell.model.formatId === Theme.hiddenFormat
+
     implicitHeight: Theme.rowHeight
 
     contentItem: Label {
         text: cell.model && cell.model.display !== undefined ? cell.model.display : ""
         elide: Text.ElideRight
-        opacity: cell.isAutoPad ? 0.55 : 1
-        font.italic: cell.isAutoPad
+        opacity: cell.isAutoPad || cell.hiddenValue ? 0.55 : 1
+        font.italic: cell.isAutoPad || cell.hiddenValue
         color: cell.highlighted ? cell.palette.highlightedText
                : cell.column === 1 ? Theme.typeColor(text, cell.palette.buttonText)
                : cell.palette.buttonText

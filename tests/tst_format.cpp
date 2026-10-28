@@ -109,6 +109,22 @@ private slots:
         QCOMPARE(registry.format("hex", {Representation::Unsigned, 3, false}, array), QStringLiteral("[0x0001, 0x0002, 0xFFFF]"));
     }
 
+    void hiddenFormatShowsNothingForAnyField()
+    {
+        FormatRegistry registry;
+        const Value number = decodeValue(Representation::Unsigned, 2, 1, bytes({1, 0}), QSysInfo::LittleEndian);
+        const Value array = decodeValue(Representation::Unsigned, 2, 3, bytes({1, 0, 2, 0, 0xFF, 0xFF}), QSysInfo::LittleEndian);
+
+        QVERIFY(registry.contains("hidden"));
+        QVERIFY(registry.isCompatible("hidden", {Representation::Unsigned, 1, false}));
+        QVERIFY(registry.isCompatible("hidden", {Representation::Float, 3, false}));
+        QVERIFY(registry.isCompatible("hidden", {Representation::None, 1, true}));   // grupos também
+
+        QCOMPARE(registry.format("hidden", {Representation::Unsigned, 1, false}, number), QString());
+        QCOMPARE(registry.format("hidden", {Representation::Unsigned, 3, false}, array), QString());
+        QVERIFY(!registry.addPattern("hidden", "%d"));                              // o nome já é de um formato
+    }
+
     void compatibilityAndDefaults()
     {
         FormatRegistry registry;

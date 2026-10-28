@@ -12,7 +12,7 @@
 namespace bina::format {
 
 // Formatadores disponíveis em um documento:
-//  - embutidos (dec, hex, oct, bin, float, string, bytes);
+//  - embutidos (dec, hex, oct, bin, float, string, bytes, hidden);
 //  - padrões nomeados, definidos pelo usuário ("iso_date" -> "%(tm_year+1900)04d-...");
 //  - padrões inline, referenciados diretamente pelo id "printf:<padrão>".
 class FormatRegistry

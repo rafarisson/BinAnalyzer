@@ -5,6 +5,7 @@
 #include <QSysInfo>
 
 #include "bina/parse/ParsedNode.h"
+#include "bina/format/Value.h"
 #include "bina/schema/LayoutCalculator.h"
 #include "bina/schema/OperationResult.h"
 
@@ -28,10 +29,10 @@ public:
     // até 'maxRecords' registros (todos, se negativo); os demais vêm com parseMore().
     // Falha se o schema for inválido (tipo desconhecido, struct vazia). Dados faltando não são
     // erro: os campos além do fim ficam marcados como truncados.
-    schema::OperationResult parse(const schema::Field *root, QByteArrayView data, ParseResult &out,
     //
     // Com 'dataOffset' (o tamanho do cabeçalho), os registros começam nesse offset do arquivo. Os
     // offsets dos nós continuam sendo posições no arquivo.
+    schema::OperationResult parse(const schema::Field *root, QByteArrayView data, ParseResult &out,
                                   qint64 maxRecords = -1, qint64 dataOffset = 0);
 
     // Lê o cabeçalho: a struct 'definition' (a definição de um tipo) no início do arquivo. O resultado
@@ -45,7 +46,11 @@ public:
 
 private:
 
-    bool parseFields(const schema::Field *definition, qint64 base, QByteArrayView data, QList<ParsedNode> &out);
+    // Os campos com o formato "hidden" são lidos (têm offset, tamanho e valor, e o valor entra no valor
+    // do grupo) mas não viram nós em 'out', como o auto_pad. 'names' e 'values' recebem todos.
+    bool parseFields(const schema::Field *definition, qint64 base, QByteArrayView data, QList<ParsedNode> &out,
+                     QStringList &names, QList<format::Value> &values);
+    bool isHidden(const schema::Field *field) const;
     bool parseField(const schema::Field *field, qint64 offset, QByteArrayView data, ParsedNode &out);
     bool parseStructInstance(const schema::Field *definition, qint64 offset, qint64 size, QByteArrayView data, ParsedNode &out);
 

@@ -17,6 +17,9 @@ QtObject {
     readonly property int headerHeight: 34
     readonly property real dimmedOpacity: 0.45
 
+    // Formato que esconde o campo: ele é lido, mas não aparece no resultado (na estrutura fica esmaecido).
+    readonly property string hiddenFormat: "hidden"
+
     // Cabeçalhos de painel, destaque de ação pendente e selo de contagem.
     readonly property color headerBackground: dark ? "#2b2d31" : "#f1f3f5"
     readonly property color headerBorder: dark ? "#3a3d42" : "#d5d9de"

@@ -10,6 +10,7 @@
 #include "bina/schema/Field.h"
 
 // bina::format
+#include "bina/format/BuiltinFormatters.h"
 #include "bina/format/FieldFormat.h"
 #include "bina/format/FormatRegistry.h"
 
@@ -107,8 +108,11 @@ QStringList ResultTreeModel::compatibleFormatsFor(const Node &node) const
         return {};
 
     QStringList ids;
-    for (const format::Formatter *f : doc->formats()->compatible(node.target))
-        ids << f->id();
+    // "hidden" é uma decisão da estrutura: o campo oculto nem chega ao resultado.
+    for (const format::Formatter *f : doc->formats()->compatible(node.target)) {
+        if (f->id() != format::FormatIds::kHidden)
+            ids << f->id();
+    }
 
     return ids;
 }

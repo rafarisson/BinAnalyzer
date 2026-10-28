@@ -195,6 +195,29 @@ private slots:
         QVERIFY(result.records.front().truncated);
     }
 
+    // Campo "hidden": lido e com espaço no layout, mas fora do resultado; o valor do grupo o conserva.
+    void hiddenFieldsAreParsedButNotShown()
+    {
+        auto doc = documentFromJson(R"({"version":1,"elements":[
+            {"name":"a","type":"uint8"},
+            {"name":"secret","type":"uint16","formatter":"hidden"},
+            {"name":"b","type":"uint8"}]})");
+        QVERIFY(doc);
+
+        bina::parse::BinaryParser parser(doc->types(), doc->byteOrder(), doc->maxAlign());
+        bina::parse::ParseResult result;
+        QVERIFY(parser.parse(doc->fields()->root(), QByteArray::fromHex("0A00 3412 0B00"), result));
+
+        const ParsedNode &record = result.records.front();
+
+        QCOMPARE(record.children.size(), 2);                        // a e b; secret não vira nó
+        QCOMPARE(record.children.at(0).name, QStringLiteral("a"));
+        QCOMPARE(record.children.at(1).name, QStringLiteral("b"));
+        QCOMPARE(record.children.at(1).offset, qint64(4));          // mas ocupou os bytes 2 e 3
+        QCOMPARE(record.children.at(1).value.toUnsigned(), quint64(0x0B));
+        QCOMPARE(result.recordSize, qint64(6));
+    }
+
     void byteOrderChangesTheValues()
     {
         auto doc = sampleDocument();

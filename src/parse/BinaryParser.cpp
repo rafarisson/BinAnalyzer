@@ -3,6 +3,7 @@
 #include "bina/parse/BinaryParser.h"
 #include "bina/format/ValueDecoder.h"
 #include "bina/format/FieldFormat.h"
+#include "bina/format/BuiltinFormatters.h"
 
 // bina::schema
 #include "bina/schema/DataType.h"
@@ -84,8 +85,8 @@ schema::OperationResult BinaryParser::parse(const schema::Field *root, QByteArra
     result.structure = root;
     result.recordSize = layout.size;
     result.dataSize = data.size();
-
     result.dataOffset = qMax<qint64>(0, dataOffset);
+
     if (const schema::OperationResult more = parseMore(result, data, maxRecords); !more)
         return more;
 
@@ -126,7 +127,22 @@ schema::OperationResult BinaryParser::parseMore(ParseResult &result, QByteArrayV
 
 // Campos de 'definition' (sem auto_pad) a partir de 'base'. O padding entre campos é implícito:
 // cada campo começa no próximo offset alinhado, como no cálculo de layout do schema.
-bool BinaryParser::parseFields(const schema::Field *definition, qint64 base, QByteArrayView data, QList<ParsedNode> &out)
+// O formato "hidden" do campo, ou o do tipo dele quando o campo não define um.
+bool BinaryParser::isHidden(const schema::Field *field) const
+{
+    if (field->formatId() == format::FormatIds::kHidden)
+        return true;
+
+    if (!field->formatId().isEmpty())
+        return false;
+
+    const schema::DataType *type = m_types->find(field->typeId());
+
+    return type && type->definition() && type->formatId() == format::FormatIds::kHidden;
+}
+
+bool BinaryParser::parseFields(const schema::Field *definition, qint64 base, QByteArrayView data, QList<ParsedNode> &out,
+                               QStringList &names, QList<format::Value> &values)
 {
     qint64 relative = 0;
 
@@ -143,7 +159,11 @@ bool BinaryParser::parseFields(const schema::Field *definition, qint64 base, QBy
             return false;
 
         relative += node.size;
-        out.append(std::move(node));
+        names << node.name;
+        values << node.value;
+
+        if (!isHidden(field))
+            out.append(std::move(node));
     }
 
     return true;
@@ -220,15 +240,11 @@ bool BinaryParser::parseStructInstance(const schema::Field *definition, qint64 o
         return true;
     }
 
-    if (!parseFields(definition, offset, data, out.children))
-        return false;
-
     QStringList names;
     QList<format::Value> values;
-    for (const ParsedNode &child : std::as_const(out.children)) {
-        names << child.name;
-        values << child.value;
-    }
+
+    if (!parseFields(definition, offset, data, out.children, names, values))
+        return false;
 
     out.value = format::Value::makeStruct(names, values, sliceOf(data, offset, size));
 

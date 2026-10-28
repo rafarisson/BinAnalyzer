@@ -145,6 +145,23 @@ protected:
     QString formatScalar(const Value &value) const override { return format(value); }
 };
 
+// Campo avaliado mas não exibido (o resultado não o mostra): serve a qualquer campo, inclusive grupos.
+class HiddenFormatter : public Formatter
+{
+public:
+
+    QString id() const override { return FormatIds::kHidden; }
+    QString displayName() const override { return QCoreApplication::translate("bina", "Oculto"); }
+
+    bool accepts(const Target &) const override { return true; }
+
+    QString format(const Value &) const override { return {}; }
+
+protected:
+
+    QString formatScalar(const Value &) const override { return {}; }
+};
+
 }
 
 QString escapeText(const QString &text)
@@ -183,6 +200,7 @@ std::vector<std::unique_ptr<Formatter>> createBuiltinFormatters()
     out.push_back(std::make_unique<FloatFormatter>());
     out.push_back(std::make_unique<StringFormatter>());
     out.push_back(std::make_unique<BytesFormatter>());
+    out.push_back(std::make_unique<HiddenFormatter>());
 
     return out;
 }
