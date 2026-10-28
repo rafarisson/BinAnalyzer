@@ -12,6 +12,9 @@ import Bina.App
 Item {
     id: root
 
+    // O fantasma e o indicador ficam dentro da view: nada é desenhado sobre as abas ou outros painéis.
+    clip: true
+
     required property TreeView view    // o TreeView
     required property SchemaTreeModel itemModel
 
@@ -32,15 +35,19 @@ Item {
     function move(scenePosition) {
         const point = root.mapFromItem(null, scenePosition)
 
-        ghost.x = point.x + 12
-        ghost.y = point.y + 8
+        // O fantasma acompanha o ponteiro, mas não sai da área da view.
+        ghost.x = Math.max(0, Math.min(point.x + 12, root.width - ghost.width))
+        ghost.y = Math.max(0, Math.min(point.y + 8, root.height - ghost.height))
 
         valid = false
 
         const cell = view.cellAtPosition(view.mapFromItem(null, scenePosition), true)
         const item = cell.y >= 0 ? view.itemAtCell(Qt.point(0, cell.y)) as SchemaDelegate : null
-        if (!item)
+        // Fora das linhas (sobre as abas, por exemplo): sem alvo e sem indicador.
+        if (!item) {
+            target = undefined
             return
+        }
 
         const top = item.mapToItem(root, 0, 0).y
         const fraction = (point.y - top) / item.height
@@ -48,7 +55,11 @@ Item {
         zone = fraction < 0.25 ? SchemaTreeModel.Before
                : fraction > 0.75 ? SchemaTreeModel.After : SchemaTreeModel.Onto
         target = view.index(cell.y, 0)
-        indicator.leftInset = 0
+
+        // A linha de "antes" e "depois" começa no nível do alvo: só um alvo na raiz tem a linha
+        // inteira. A zona "dentro" é um contorno da linha toda.
+        indicator.leftInset = zone !== SchemaTreeModel.Onto && item.depth > 0
+                              ? item.contentItem.mapToItem(root, 0, 0).x : 0
 
         // Sobre a borda de baixo de um grupo aberto, o ponteiro à direita do início do nome
         // "entra" no grupo (antes do primeiro campo); à esquerda, fica depois dele como irmão.
