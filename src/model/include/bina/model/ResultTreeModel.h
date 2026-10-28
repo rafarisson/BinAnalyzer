@@ -48,10 +48,17 @@ public:
 
     using Node = parse::ParsedNode;
 
+    // O que o model exibe da análise: os registros ou o cabeçalho (um único registro, na verdade a
+    // struct do cabeçalho, com os campos como linhas de topo).
+    enum class Part {
+        Data,
+        Header
+    };
+
     explicit ResultTreeModel(QObject *parent = nullptr);
 
     // A sessão (e o documento dela) precisam sobreviver ao model.
-    void setSession(session::AnalysisSession *session);
+    void setSession(session::AnalysisSession *session, Part part = Part::Data);
 
     // Acesso por nó, para outras visões dos mesmos dados (ver ResultTableModel). Os ponteiros valem
     // até o próximo modelReset(); ler mais registros não os invalida.
@@ -114,6 +121,7 @@ private:
     static void assignInPlace(Node &dst, Node &&src);
 
     QPointer<session::AnalysisSession> m_session;
+    Part m_part{Part::Data};
     bool m_notifying{false};       // emitindo modelReset()/rowsInserted() (ver finishReset())
 
     parse::ParseResult m_result;

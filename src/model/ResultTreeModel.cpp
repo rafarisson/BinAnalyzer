@@ -20,10 +20,12 @@ ResultTreeModel::ResultTreeModel(QObject *parent)
 {
 }
 
-void ResultTreeModel::setSession(session::AnalysisSession *session)
+void ResultTreeModel::setSession(session::AnalysisSession *session, Part part)
 {
-    if (m_session == session)
+    if (m_session == session && m_part == part)
         return;
+
+    m_part = part;
 
     beginResetModel();
 
@@ -65,7 +67,7 @@ void ResultTreeModel::onInvalidated()
 
 void ResultTreeModel::onAnalyzed()
 {
-    parse::ParseResult result = m_session->takeResult();
+    parse::ParseResult result = m_part == Part::Header ? m_session->takeHeaderResult() : m_session->takeResult();
 
     // Mesma estrutura: atualiza os nós no lugar para preservar índices e expansão da view.
     if (!m_result.records.empty() && sameShape(m_result, result)) {
@@ -216,9 +218,9 @@ int ResultTreeModel::rowOf(const Node *node) const
 // Nó que representa um registro inteiro (a estrutura raiz), e não um campo.
 bool ResultTreeModel::isRecord(const Node &node) const
 {
-    const document::Document *doc = document();
-
-    return node.field && doc && node.field == doc->fields()->root();
+    // A raiz usada na análise (a estrutura ou a definição do cabeçalho), mesmo que o documento já
+    // tenha outra.
+    return node.field && node.field == m_result.structure;
 }
 
 const ResultTreeModel::Node *ResultTreeModel::nodeFromIndex(const QModelIndex &index) const
@@ -443,7 +445,7 @@ void ResultTreeModel::emitAllChanged(const QModelIndex &parent)
 bool ResultTreeModel::sameShape(const parse::ParseResult &a, const parse::ParseResult &b)
 {
     if (a.structure != b.structure || a.records.size() != b.records.size()
-        || a.recordSize != b.recordSize || a.dataSize != b.dataSize)
+        || a.recordSize != b.recordSize || a.dataSize != b.dataSize || a.dataOffset != b.dataOffset)
         return false;
 
     for (size_t i = 0; i < a.records.size(); ++i)

@@ -34,7 +34,10 @@ class AppController : public QObject
     Q_PROPERTY(bina::model::SchemaTreeModel *schemaModel READ schemaModel CONSTANT)
     Q_PROPERTY(bina::model::ResultTreeModel *resultModel READ resultModel CONSTANT)
     Q_PROPERTY(bina::model::ResultTableModel *tableModel READ tableModel CONSTANT)
+    Q_PROPERTY(bina::model::ResultTreeModel *headerModel READ headerModel CONSTANT)
+    Q_PROPERTY(bina::model::ResultTableModel *headerTableModel READ headerTableModel CONSTANT)
     Q_PROPERTY(bina::presentation::TypeDefinitionController *typeController READ typeController CONSTANT)
+    Q_PROPERTY(bina::presentation::TypeDefinitionController *headerController READ headerController CONSTANT)
     Q_PROPERTY(bina::presentation::FormatPatternController *formatController READ formatController CONSTANT)
     Q_PROPERTY(bina::session::AnalysisSession *session READ session CONSTANT)
     Q_PROPERTY(bina::app::MessageLog *messageLog READ messageLog CONSTANT)
@@ -58,7 +61,10 @@ public:
     model::SchemaTreeModel *schemaModel() { return &m_schemaModel; }
     model::ResultTreeModel *resultModel() { return &m_resultModel; }
     model::ResultTableModel *tableModel() { return &m_tableModel; }
+    model::ResultTreeModel *headerModel() { return &m_headerModel; }
+    model::ResultTableModel *headerTableModel() { return &m_headerTableModel; }
     presentation::TypeDefinitionController *typeController() { return &m_typeController; }
+    presentation::TypeDefinitionController *headerController() { return &m_headerController; }
     presentation::FormatPatternController *formatController() { return &m_formatController; }
     session::AnalysisSession *session() { return &m_session; }
     MessageLog *messageLog() { return &m_log; }
@@ -129,7 +135,10 @@ private:
     model::SchemaTreeModel m_schemaModel;
     model::ResultTreeModel m_resultModel;
     model::ResultTableModel m_tableModel;
+    model::ResultTreeModel m_headerModel;
+    model::ResultTableModel m_headerTableModel;
     presentation::TypeDefinitionController m_typeController;
+    presentation::TypeDefinitionController m_headerController{presentation::TypeDefinitionController::Headers};
     presentation::FormatPatternController m_formatController;
     DocumentService m_documents;
     ExportService m_exports;

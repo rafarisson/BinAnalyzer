@@ -1,3 +1,4 @@
+#include <QDir>
 #include <QFileInfo>
 
 #include "bina/app/ExportService.h"
@@ -48,11 +49,14 @@ QList<io::ResultNodeDto> nodesUnder(const model::ResultTreeModel &model, const Q
 
 } // namespace
 
-ExportService::ExportService(model::ResultTreeModel &tree, model::ResultTableModel &table, MessageLog &log,
-                             QObject *parent)
+ExportService::ExportService(model::ResultTreeModel &tree, model::ResultTableModel &table,
+                             model::ResultTreeModel &headerTree, model::ResultTableModel &headerTable,
+                             MessageLog &log, QObject *parent)
     : QObject{parent}
     , m_tree{tree}
     , m_table{table}
+    , m_headerTree{headerTree}
+    , m_headerTable{headerTable}
     , m_log{log}
 {
 }
@@ -82,18 +86,45 @@ bool ExportService::exportResult(const QString &pathOrUrl)
     // Os registros ainda não lidos entram no arquivo exportado.
     m_tree.fetchAll();
 
-    const schema::OperationResult written = codec->shape == io::ResultCodec::Tree
-                                                ? codec->treeExporter()->writeFile(path, resultTree(m_tree))
-                                                : codec->tableExporter()->writeFile(path, resultTable(m_table));
+    const schema::OperationResult written = write(*codec, path, false);
 
     if (!written) {
         m_log.add(tr("Não foi possível exportar '%1': %2").arg(path, written.error()), true);
         return false;
     }
 
-    m_log.add(tr("Resultado exportado: %1").arg(QFileInfo(path).fileName()));
+    if (m_headerTable.rowCount() == 0) {
+        m_log.add(tr("Resultado exportado: %1").arg(QFileInfo(path).fileName()));
+        return true;
+    }
+
+    const QString header = headerPath(path);
+    const schema::OperationResult headerWritten = write(*codec, header, true);
+
+    if (!headerWritten) {
+        m_log.add(tr("Não foi possível exportar o cabeçalho '%1': %2").arg(header, headerWritten.error()), true);
+        return false;
+    }
+
+    m_log.add(tr("Resultado exportado: %1 (cabeçalho em %2)")
+                  .arg(QFileInfo(path).fileName(), QFileInfo(header).fileName()));
 
     return true;
+}
+
+QString ExportService::headerPath(const QString &path)
+{
+    const QFileInfo info(path);
+
+    return info.dir().filePath(info.completeBaseName() + QStringLiteral(".header.") + info.suffix());
+}
+
+schema::OperationResult ExportService::write(const io::ResultCodec &codec, const QString &path, bool header)
+{
+    if (codec.shape == io::ResultCodec::Tree)
+        return codec.treeExporter()->writeFile(path, resultTree(header ? m_headerTree : m_tree));
+
+    return codec.tableExporter()->writeFile(path, resultTable(header ? m_headerTable : m_table));
 }
 
 io::ResultTreeDto ExportService::resultTree(const model::ResultTreeModel &model)

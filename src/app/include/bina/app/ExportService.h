@@ -14,7 +14,8 @@ class MessageLog;
 
 // Exporta o resultado da análise como está na tela. O formato vem da extensão (ResultCodecRegistry:
 // .json para a árvore, .csv para a tabela; sem extensão vale o primeiro, .json). Os registros que
-// ainda não foram lidos são lidos antes: o arquivo exportado tem todos.
+// ainda não foram lidos são lidos antes: o arquivo exportado tem todos. O cabeçalho, se houver, vai
+// para um arquivo à parte, "<nome>.header.<extensão>", no mesmo formato.
 class ExportService : public QObject
 {
     Q_OBJECT
@@ -22,8 +23,8 @@ class ExportService : public QObject
 public:
 
     // Os models e o log precisam sobreviver ao serviço.
-    ExportService(model::ResultTreeModel &tree, model::ResultTableModel &table, MessageLog &log,
-                  QObject *parent = nullptr);
+    ExportService(model::ResultTreeModel &tree, model::ResultTableModel &table, model::ResultTreeModel &headerTree,
+                  model::ResultTableModel &headerTable, MessageLog &log, QObject *parent = nullptr);
 
     bool exportResult(const QString &pathOrUrl);
 
@@ -34,10 +35,17 @@ public:
     static io::ResultTreeDto resultTree(const model::ResultTreeModel &model);
     static io::ResultTableDto resultTable(const model::ResultTableModel &model);
 
+    // Onde o cabeçalho é gravado quando o resultado vai para 'path'.
+    static QString headerPath(const QString &path);
+
 private:
+
+    schema::OperationResult write(const io::ResultCodec &codec, const QString &path, bool header);
 
     model::ResultTreeModel &m_tree;
     model::ResultTableModel &m_table;
+    model::ResultTreeModel &m_headerTree;
+    model::ResultTableModel &m_headerTable;
     MessageLog &m_log;
     io::ResultCodecRegistry m_codecs{io::ResultCodecRegistry::withBuiltins()};
 };

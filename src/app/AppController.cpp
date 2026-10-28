@@ -11,14 +11,17 @@ namespace bina::app {
 AppController::AppController(QObject *parent)
     : QObject{parent}
     , m_documents{m_document, m_log}
-    , m_exports{m_resultModel, m_tableModel, m_log}
+    , m_exports{m_resultModel, m_tableModel, m_headerModel, m_headerTableModel, m_log}
 {
     m_schemaModel.setModel(m_document.fields());
     m_schemaModel.setTypeExtractionEnabled(true);
     m_session.setDocument(&m_document);
     m_resultModel.setSession(&m_session);
     m_tableModel.setSource(&m_resultModel);
+    m_headerModel.setSession(&m_session, model::ResultTreeModel::Part::Header);
+    m_headerTableModel.setSource(&m_headerModel);
     m_typeController.setDocument(&m_document);
+    m_headerController.setDocument(&m_document);
     m_formatController.setDocument(&m_document);
 
     connect(&m_documents, &DocumentService::pathChanged, this, [this] {
@@ -63,6 +66,16 @@ void AppController::connectMessages()
     connect(&m_document, &document::Document::typeImported, this, [this](const QString &id) {
         m_log.add(tr("Tipo '%1' copiado da biblioteca.").arg(id));
     });
+    connect(&m_document, &document::Document::activeHeaderChanged, this, [this] {
+        const QString id = m_document.activeHeader();
+
+        if (id.isEmpty())
+            m_log.add(m_dataPath.isEmpty() ? tr("Cabeçalho desativado.")
+                                           : tr("Cabeçalho desativado: analise o arquivo novamente para atualizar os dados."));
+        else
+            m_log.add(m_dataPath.isEmpty() ? tr("Cabeçalho '%1' ativado.").arg(id)
+                                           : tr("Cabeçalho '%1' ativado: analise o arquivo novamente para atualizar os dados.").arg(id));
+    });
     connect(&m_document, &document::Document::typeRemoved, this, [this](const QString &id) {
         m_log.add(tr("Tipo '%1' removido.").arg(id));
     });
@@ -74,6 +87,8 @@ void AppController::connectMessages()
 
     connect(&m_formatController, &presentation::FormatPatternController::errorOccurred, this, error);
     connect(&m_typeController, &presentation::TypeDefinitionController::errorOccurred, this, error);
+    connect(&m_headerController, &presentation::TypeDefinitionController::errorOccurred, this, error);
+    connect(m_headerController.draftModel(), &model::SchemaTreeModel::errorOccurred, this, error);
     connect(m_typeController.draftModel(), &model::SchemaTreeModel::errorOccurred, this, error);
     connect(&m_schemaModel, &model::SchemaTreeModel::errorOccurred, this, error);
 

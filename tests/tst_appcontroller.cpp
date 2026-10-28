@@ -38,6 +38,82 @@ private slots:
         QVERIFY(app.schemaModel()->rowCount() > 1);   // os campos da raiz
     }
 
+    void headerIsAnalyzedBeforeTheRecordsAndExportedApart()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+
+        const QString schemaPath = dir.filePath("schema.json");
+        const QString dataPath = dir.filePath("data.bin");
+
+        QFile schema(schemaPath);
+        QVERIFY(schema.open(QIODevice::WriteOnly));
+        schema.write(R"({"version":1,"types":[
+            {"id":"hdr","header":true,"elements":[{"name":"magic","type":"uint16"},{"name":"count","type":"uint16"}]}],
+            "header":"hdr","elements":[{"name":"v","type":"uint16"}]})");
+        schema.close();
+
+        QFile data(dataPath);
+        QVERIFY(data.open(QIODevice::WriteOnly));
+        data.write(QByteArray::fromHex("4142020001000200"));
+        data.close();
+
+        AppController app;
+        QVERIFY(app.openSchema(schemaPath));
+        QVERIFY(app.openData(dataPath));
+
+        QCOMPARE(app.session()->recordCount(), 2);
+        QVERIFY(app.session()->hasHeader());
+        QCOMPARE(app.session()->headerSize(), 4);
+        QVERIFY(app.session()->statusText().contains("Cabeçalho de 4 bytes"));
+        QCOMPARE(app.headerModel()->rowCount(), 2);             // magic e count
+        QCOMPARE(app.headerTableModel()->rowCount(), 1);
+        QCOMPARE(app.headerTableModel()->columnCount(), 2);
+        QCOMPARE(app.resultModel()->recordNode(0)->offset, qint64(4));
+
+        QVERIFY(app.exportResult(dir.filePath("result.csv")));
+        QVERIFY(QFile::exists(dir.filePath("result.csv")));
+        QVERIFY(QFile::exists(dir.filePath("result.header.csv")));
+
+        // Desativar o cabeçalho deixa os dados desatualizados; a nova análise não o inclui.
+        QCOMPARE(app.document()->activeHeader(), QStringLiteral("hdr"));
+        QCOMPARE(app.headerController()->currentType(), QStringLiteral("hdr"));
+        QVERIFY(app.headerController()->isActive());
+        app.headerController()->setActive(false);
+        QVERIFY(app.session()->isStale());
+        app.reanalyze();
+        QVERIFY(!app.session()->hasHeader());
+        QCOMPARE(app.headerModel()->rowCount(), 0);
+        QCOMPARE(app.session()->recordCount(), 4);              // sem cabeçalho: 8 bytes, 4 registros
+    }
+
+    void libraryHeadersAreOfferedAndImportedWhenChosen()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        QVERIFY(QDir(dir.path()).mkpath("types"));
+
+        QFile file(dir.filePath("types/hdr.json"));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write(R"({"version":1,"types":[{"id":"hdr","header":true,"elements":[{"name":"magic","type":"uint32"}]}],"elements":[]})");
+        file.close();
+
+        AppController app;
+        app.openTypeLibrary(dir.filePath("types"), QString());
+
+        const QVariantList choices = app.headerController()->choices();
+        QCOMPARE(choices.size(), 1);
+        QVERIFY(choices.first().toMap().value("fromLibrary").toBool());
+        QVERIFY(app.typeController()->choices().isEmpty());       // não é um tipo comum
+        QVERIFY(!app.document()->isHeader("hdr"));
+
+        QVERIFY(app.headerController()->select("hdr"));
+
+        QVERIFY(app.document()->isHeader("hdr"));
+        QCOMPARE(app.headerController()->currentType(), QStringLiteral("hdr"));
+        QVERIFY(!app.headerController()->choices().first().toMap().value("fromLibrary").toBool());
+    }
+
     void acceptsFileUrls()
     {
         AppController app;

@@ -8,13 +8,20 @@
 
 namespace bina::presentation {
 
-TypeDefinitionController::TypeDefinitionController(QObject *parent)
+TypeDefinitionController::TypeDefinitionController(Kind kind, QObject *parent)
     : QObject{parent}
+    , m_kind{kind}
     , m_draft{new document::FieldTree(this)}
     , m_draftModel{new model::SchemaTreeModel(m_draft, this)}
 {
+    connect(this, &TypeDefinitionController::typeIdsChanged, this, &TypeDefinitionController::choicesChanged);
+    connect(this, &TypeDefinitionController::libraryIdsChanged, this, &TypeDefinitionController::choicesChanged);
+
     // Qualquer edição do rascunho (os auto_pad que a acompanham também) o marca como alterado.
-    const auto markModified = [this] { setModified(true); };
+    const auto markModified = [this] {
+        setModified(true);
+        emit sizeChanged();
+    };
 
     connect(m_draft, &document::FieldTree::inserted, this, markModified);
     connect(m_draft, &document::FieldTree::removed, this, markModified);
@@ -54,6 +61,9 @@ void TypeDefinitionController::setDocument(document::Document *document)
         connect(m_document, &document::Document::typeImported, this, added);
         connect(m_document, &document::Document::typeDefinitionChanged, this, &TypeDefinitionController::updateLibraryState);
         connect(m_document, &document::Document::libraryChanged, this, &TypeDefinitionController::updateLibraryState);
+        connect(m_document, &document::Document::libraryChanged, this, &TypeDefinitionController::libraryIdsChanged);
+        connect(m_document, &document::Document::typeImported, this, &TypeDefinitionController::libraryIdsChanged);
+        connect(m_document, &document::Document::activeHeaderChanged, this, &TypeDefinitionController::activeChanged);
 
         // Os tamanhos e os auto_pad dependem do alinhamento máximo.
         connect(m_document, &document::Document::maxAlignChanged, this, [this] {
@@ -78,7 +88,80 @@ void TypeDefinitionController::setCurrentType(const QString &id)
     loadDraft();
 
     emit currentTypeChanged();
+    emit activeChanged();
     updateLibraryState();
+}
+
+bool TypeDefinitionController::isActive() const
+{
+    return m_kind == Headers && m_document && !m_current.isEmpty() && m_document->activeHeader() == m_current;
+}
+
+void TypeDefinitionController::setActive(bool active)
+{
+    if (m_kind != Headers || !m_document || active == isActive())
+        return;
+
+    if (active && m_current.isEmpty())
+        return;
+
+    m_document->setActiveHeader(active ? m_current : QString());
+}
+
+QStringList TypeDefinitionController::libraryIds() const
+{
+    if (!m_document)
+        return {};
+
+    return m_kind == Headers ? m_document->availableLibraryHeaderIds() : m_document->availableLibraryTypeIds();
+}
+
+QVariantList TypeDefinitionController::choices() const
+{
+    QVariantList list;
+
+    for (const QString &id : m_typeIds)
+        list << QVariantMap{{QStringLiteral("id"), id}, {QStringLiteral("text"), id}, {QStringLiteral("fromLibrary"), false}};
+
+    for (const QString &id : libraryIds()) {
+        list << QVariantMap{{QStringLiteral("id"), id},
+                            {QStringLiteral("text"), tr("%1 (biblioteca)").arg(id)},
+                            {QStringLiteral("fromLibrary"), true}};
+    }
+
+    return list;
+}
+
+bool TypeDefinitionController::select(const QString &id)
+{
+    if (m_typeIds.contains(id)) {
+        setCurrentType(id);
+        return true;
+    }
+
+    return importFromLibrary(id);
+}
+
+int TypeDefinitionController::sizeInBytes() const
+{
+    return m_draft->root() ? m_draft->sizeInBytes(m_draft->root()) : 0;
+}
+
+bool TypeDefinitionController::importFromLibrary(const QString &id)
+{
+    if (!m_document)
+        return false;
+
+    const schema::OperationResult result = m_document->importType(id);
+
+    if (!result) {
+        emit errorOccurred(result.error());
+        return false;
+    }
+
+    setCurrentType(schema::normalizeIdentifier(id));
+
+    return true;
 }
 
 bool TypeDefinitionController::apply()
@@ -103,7 +186,7 @@ bool TypeDefinitionController::createType(const QString &id)
     if (!m_document)
         return false;
 
-    const schema::OperationResult result = m_document->addType(id);
+    const schema::OperationResult result = m_kind == Headers ? m_document->addHeader(id) : m_document->addType(id);
 
     if (!result) {
         emit errorOccurred(result.error());
@@ -163,6 +246,8 @@ void TypeDefinitionController::rebuild()
     if (m_current != oldCurrent)
         emit currentTypeChanged();
 
+    emit activeChanged();
+    emit libraryIdsChanged();
     updateLibraryState();
 }
 
@@ -175,7 +260,7 @@ bool TypeDefinitionController::refreshTypeIds()
 
     if (m_document) {
         for (const schema::DataType *type : m_document->types()->types()) {
-            if (type->definition())
+            if (type->definition() && m_document->isHeader(type->id()) == (m_kind == Headers))
                 m_typeIds << type->id();
         }
     }
@@ -217,6 +302,7 @@ void TypeDefinitionController::loadDraft()
     m_draft->setRoot(definition ? definition->clone() : nullptr);
 
     setModified(false);
+    emit sizeChanged();
 }
 
 void TypeDefinitionController::setModified(bool modified)

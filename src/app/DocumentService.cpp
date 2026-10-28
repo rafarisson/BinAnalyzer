@@ -31,6 +31,7 @@ DocumentService::DocumentService(document::Document &document, MessageLog &log, 
     connect(&m_document, &document::Document::typeImported, this, markDirty);
     connect(&m_document, &document::Document::typeRemoved, this, markDirty);
     connect(&m_document, &document::Document::typeDefinitionChanged, this, markDirty);
+    connect(&m_document, &document::Document::activeHeaderChanged, this, markDirty);
 }
 
 bool DocumentService::newDocument()
