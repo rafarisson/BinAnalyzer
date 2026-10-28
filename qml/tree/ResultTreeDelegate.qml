@@ -19,7 +19,10 @@ TreeViewDelegate {
         // a fonte mono de quando o delegate foi reciclado de outra coluna.
         font.family: cell.column >= 2 ? Theme.monoFont : cell.font.family
         opacity: cell.truncated ? Theme.dimmedOpacity : 1
-        color: cell.highlighted ? cell.palette.highlightedText : cell.palette.buttonText
+        color: cell.highlighted ? cell.palette.highlightedText
+               : cell.column === 1 ? Theme.typeColor(text, cell.palette.buttonText)
+               : cell.palette.buttonText
+        horizontalAlignment: cell.column === 3 || cell.column === 2 ? Text.AlignRight : Text.AlignLeft
         visible: !cell.editing
     }
 

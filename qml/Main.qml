@@ -50,10 +50,10 @@ ApplicationWindow {
         onSaveSchemaAsRequested: saveSchemaDialog.open()
         onOpenDataRequested: openDataDialog.open()
         onExportResultRequested: exportResultDialog.open()
-        onExpandAllRequested: {
-            schemaPane.expandAll()
-            resultPane.expandAll()
-        }
+    }
+
+    footer: AppStatusBar {
+        app: window.app
     }
 
     FileDialog {
@@ -133,16 +133,44 @@ ApplicationWindow {
             id: schemaPane
 
             app: window.app
-            SplitView.preferredWidth: 540
-            SplitView.minimumWidth: 250
+            SplitView.preferredWidth: 560
+            SplitView.minimumWidth: 300
         }
 
         ResultPane {
             id: resultPane
 
             app: window.app
+            onOpenDataRequested: openDataDialog.open()
             SplitView.fillWidth: true
             SplitView.minimumWidth: 300
+        }
+    }
+
+    // Soltar um arquivo na janela: .json abre como estrutura, qualquer outro como binário.
+    DropArea {
+        anchors.fill: parent
+        keys: ["text/uri-list"]
+
+        onDropped: drop => {
+            if (drop.urls.length === 0)
+                return
+
+            const url = drop.urls[0].toString()
+
+            if (url.toLowerCase().endsWith(".json"))
+                window.app.openSchema(url)
+            else
+                window.app.openData(url)
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            visible: parent.containsDrag
+            color: "transparent"
+            border.color: Theme.accent
+            border.width: 3
+            opacity: 0.8
         }
     }
 

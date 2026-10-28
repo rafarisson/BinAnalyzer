@@ -23,7 +23,9 @@ TreeViewDelegate {
         elide: Text.ElideRight
         opacity: cell.isAutoPad ? 0.55 : 1
         font.italic: cell.isAutoPad
-        color: cell.highlighted ? cell.palette.highlightedText : cell.palette.buttonText
+        color: cell.highlighted ? cell.palette.highlightedText
+               : cell.column === 1 ? Theme.typeColor(text, cell.palette.buttonText)
+               : cell.palette.buttonText
         visible: !cell.editing
     }
 

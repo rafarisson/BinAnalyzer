@@ -3,8 +3,8 @@ import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import Bina.App
 
-// Barra de ferramentas: comandos de arquivo, análise, opções e mensagens. Os comandos que pedem um
-// diálogo de arquivo são sinais; quem hospeda a barra abre o diálogo.
+// Barra de ferramentas: arquivo, análise, opções e mensagens. Os comandos que pedem um diálogo de
+// arquivo são sinais; quem hospeda a barra abre o diálogo. Os atalhos valem na janela inteira.
 ToolBar {
     id: root
 
@@ -16,7 +16,76 @@ ToolBar {
     signal saveSchemaAsRequested()
     signal openDataRequested()
     signal exportResultRequested()
-    signal expandAllRequested()
+
+    Action {
+        id: newAction
+
+        text: qsTr("Nova estrutura")
+        shortcut: "Ctrl+N"
+        onTriggered: root.newSchemaRequested()
+    }
+
+    Action {
+        id: openSchemaAction
+
+        text: qsTr("Abrir estrutura…")
+        shortcut: "Ctrl+O"
+        onTriggered: root.openSchemaRequested()
+    }
+
+    Action {
+        id: saveAction
+
+        text: qsTr("Salvar")
+        shortcut: "Ctrl+S"
+        enabled: root.app.dirty || root.app.schemaPath === ""
+        onTriggered: root.saveSchemaRequested()
+    }
+
+    Action {
+        id: saveAsAction
+
+        text: qsTr("Salvar como…")
+        shortcut: "Ctrl+Shift+S"
+        onTriggered: root.saveSchemaAsRequested()
+    }
+
+    Action {
+        id: openDataAction
+
+        text: qsTr("Abrir binário…")
+        shortcut: "Ctrl+Shift+O"
+        onTriggered: root.openDataRequested()
+    }
+
+    Action {
+        id: reanalyzeAction
+
+        text: qsTr("Analisar")
+        shortcut: "F5"
+        enabled: root.app.session.hasData
+        onTriggered: root.app.reanalyze()
+    }
+
+    Action {
+        id: exportAction
+
+        text: qsTr("Exportar…")
+        shortcut: "Ctrl+E"
+        enabled: root.app.session.hasData
+        onTriggered: root.exportResultRequested()
+    }
+
+    // Botão de ação com a dica "nome (atalho)".
+    component BarButton: IconButton {
+        id: button
+
+        property string hint
+
+        ToolTip.visible: hovered
+        ToolTip.delay: 500
+        ToolTip.text: action && action.shortcut ? "%1 (%2)".arg(hint || action.text).arg(action.shortcut) : hint
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -24,61 +93,83 @@ ToolBar {
         anchors.rightMargin: Theme.pagePadding
         spacing: 4
 
-        ToolButton {
-            text: qsTr("Nova")
-            onClicked: root.newSchemaRequested()
+        BarButton {
+            id: fileButton
+
+            glyph: Icons.menu
+            text: qsTr("Arquivo")
+            onClicked: fileMenu.open()
+
+            Menu {
+                id: fileMenu
+
+                y: fileButton.height
+
+                MenuItem {
+                    action: newAction
+                }
+                MenuItem {
+                    action: openSchemaAction
+                }
+                MenuSeparator {}
+                MenuItem {
+                    action: saveAction
+                }
+                MenuItem {
+                    action: saveAsAction
+                }
+            }
         }
-        ToolButton {
-            text: qsTr("Abrir estrutura…")
-            onClicked: root.openSchemaRequested()
-        }
-        ToolButton {
+
+        BarButton {
+            action: saveAction
+            glyph: Icons.contentSave
             text: qsTr("Salvar")
-            enabled: root.app.dirty || root.app.schemaPath === ""
-            onClicked: root.saveSchemaRequested()
-        }
-        ToolButton {
-            text: qsTr("Salvar como…")
-            onClicked: root.saveSchemaAsRequested()
         }
 
         ToolSeparator {}
 
-        ToolButton {
-            text: qsTr("Abrir binário…")
-            onClicked: root.openDataRequested()
-        }
-        ToolButton {
-            text: qsTr("Analisar novamente")
-            enabled: root.app.session.hasData
-            font.bold: root.app.session.stale
-            ToolTip.visible: hovered
-            ToolTip.text: qsTr("Analisa o arquivo com a estrutura atual")
-            onClicked: root.app.reanalyze()
-        }
-        ToolButton {
-            text: qsTr("Exportar…")
-            enabled: root.app.session.hasData
-            ToolTip.visible: hovered
-            ToolTip.text: qsTr("Exporta o resultado como árvore (JSON) ou tabela (CSV)")
-            onClicked: root.exportResultRequested()
-        }
-        ToolButton {
-            text: qsTr("Exibição padrão")
-            ToolTip.visible: hovered
-            ToolTip.text: qsTr("Desfaz as trocas de formato feitas nos dados")
-            onClicked: root.app.resultModel.resetFormats()
-        }
-        ToolButton {
-            text: qsTr("Expandir tudo")
-            onClicked: root.expandAllRequested()
+        BarButton {
+            action: openDataAction
+            glyph: Icons.folderOpenOutline
         }
 
-        ToolSeparator {}
+        BarButton {
+            id: analyzeButton
 
-        ToolButton {
+            readonly property bool pending: root.app.session.stale
+
+            action: reanalyzeAction
+            glyph: Icons.play
+            text: qsTr("Analisar")
+            hint: qsTr("Analisa o arquivo com a estrutura atual")
+            font.bold: pending
+            contentColor: pending && enabled ? Theme.accentText : palette.buttonText
+
+            // Destaca o botão quando a estrutura mudou depois da última análise.
+            background: Rectangle {
+                radius: 4
+                color: analyzeButton.pending && analyzeButton.enabled ? Theme.accent
+                       : analyzeButton.down ? analyzeButton.palette.mid
+                       : analyzeButton.hovered ? analyzeButton.palette.midlight
+                       : "transparent"
+            }
+        }
+
+        BarButton {
+            action: exportAction
+            glyph: Icons.fileExportOutline
+            hint: qsTr("Exporta o resultado como árvore (JSON) ou tabela (CSV)")
+        }
+
+        Item {
+            Layout.fillWidth: true
+        }
+
+        BarButton {
             id: optionsButton
 
+            glyph: Icons.cog
             text: qsTr("Opções")
             onClicked: options.open()
 
@@ -86,12 +177,14 @@ ToolBar {
                 id: options
 
                 app: root.app
-                y: optionsButton.height
+                anchorItem: optionsButton
             }
         }
-        ToolButton {
+
+        BarButton {
             id: messagesButton
 
+            glyph: Icons.bellOutline
             text: root.app.messageLog.count > 0 ? qsTr("Mensagens (%1)").arg(root.app.messageLog.count) : qsTr("Mensagens")
             onClicked: messages.open()
 
@@ -99,18 +192,8 @@ ToolBar {
                 id: messages
 
                 app: root.app
-                y: messagesButton.height
+                anchorItem: messagesButton
             }
-        }
-
-        Item {
-            Layout.fillWidth: true
-        }
-
-        Label {
-            text: root.app.session.statusText
-            elide: Text.ElideLeft
-            Layout.maximumWidth: 420
         }
     }
 }

@@ -36,11 +36,16 @@ qt_add_executable(BinAnalyzerApp
 set(BINA_QML_FILES
     qml/Main.qml
     qml/AppToolBar.qml
+    qml/AppStatusBar.qml
     qml/style/Theme.qml
+    qml/style/Icons.qml
+    qml/controls/Icon.qml
+    qml/controls/IconButton.qml
     qml/panes/SchemaPane.qml
     qml/panes/TypePane.qml
     qml/panes/FormatPane.qml
-    qml/panes/DefinitionsPane.qml
+    qml/panes/PaneHeader.qml
+    qml/panes/TreeActions.qml
     qml/panes/ResultPane.qml
     qml/panes/ViewSwitcher.qml
     qml/tree/SchemaTreeView.qml
@@ -48,6 +53,8 @@ set(BINA_QML_FILES
     qml/tree/ResultTreeView.qml
     qml/tree/ResultTreeDelegate.qml
     qml/tree/ResultTableView.qml
+    qml/tree/ResultDetails.qml
+    qml/tree/EmptyState.qml
     qml/tree/TreeContextMenu.qml
     qml/tree/TreeDragAdapter.qml
     qml/tree/DropIndicator.qml
@@ -71,7 +78,7 @@ foreach(file IN LISTS BINA_QML_FILES)
     set_source_files_properties(${file} PROPERTIES QT_RESOURCE_ALIAS ${name})
 endforeach()
 
-set_source_files_properties(qml/style/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/style/Theme.qml qml/style/Icons.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 qt_add_qml_module(BinAnalyzerApp
     URI BinAnalyzer
@@ -98,6 +105,15 @@ target_link_libraries(BinAnalyzerApp
         Qt6::Quick
         Bina::app
         bina_warnings
+)
+
+# A fonte dos ícones (ver qml/style/Icons.qml). O fonts/materialdesignicons-webfont.qml, gerado pelo
+# fontdrop-glyph, só serve de consulta aos códigos dos glifos e não entra no programa.
+qt_add_resources(BinAnalyzerApp "fonts"
+    PREFIX "/fonts"
+    BASE fonts
+    FILES
+        fonts/materialdesignicons-webfont.ttf
 )
 
 # Os exemplos abertos quando o programa é iniciado sem argumentos vão embutidos no executável: assim

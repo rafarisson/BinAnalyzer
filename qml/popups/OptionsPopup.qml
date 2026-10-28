@@ -10,7 +10,30 @@ Popup {
 
     required property AppController app
 
+    // Posiciona o popup logo abaixo do botão, alinhado à direita dele e dentro da janela.
+    function placeBelow() {
+        const overlay = Overlay.overlay
+        if (!anchorItem || !overlay)
+            return
+
+        const below = anchorItem.mapToItem(overlay, anchorItem.width, anchorItem.height)
+        const limit = Theme.pagePadding
+
+        x = Math.max(limit, Math.min(below.x - width, overlay.width - width - limit))
+        y = Math.max(limit, Math.min(below.y, overlay.height - height - limit))
+    }
+
+    // O botão que abre o popup: o popup abre logo abaixo dele, alinhado à direita e sem passar das
+    // bordas da janela.
+    property Item anchorItem
+
+    parent: Overlay.overlay
     padding: 12
+    margins: Theme.pagePadding
+    modal: false
+    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+    onAboutToShow: root.placeBelow()
 
     contentItem: ColumnLayout {
         spacing: 10

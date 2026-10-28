@@ -13,8 +13,35 @@ QtObject {
 
     readonly property int rowHeight: 28
     readonly property int cellPadding: 8
-    readonly property int pagePadding: 6
+    readonly property int pagePadding: 8
+    readonly property int headerHeight: 34
     readonly property real dimmedOpacity: 0.45
+
+    // Cabeçalhos de painel, destaque de ação pendente e selo de contagem.
+    readonly property color headerBackground: dark ? "#2b2d31" : "#f1f3f5"
+    readonly property color headerBorder: dark ? "#3a3d42" : "#d5d9de"
+    readonly property color accent: dark ? "#3b82e0" : "#1f6fd6"
+    readonly property color accentText: "#ffffff"
+    readonly property color badgeBackground: dark ? "#3a3d42" : "#dde1e6"
+
+    // Cor da coluna de tipo, por categoria.
+    readonly property color typeInteger: dark ? "#6cb6ff" : "#1a5fb4"
+    readonly property color typeFloat: dark ? "#d2a8ff" : "#7b3fb5"
+    readonly property color typeText: dark ? "#7ee2a8" : "#1b7f4c"
+    readonly property color typeStruct: dark ? "#f0b072" : "#a85a0a"
+    readonly property color typeCustom: dark ? "#e6a0c4" : "#a3306b"
+
+    function typeColor(name, fallback) {
+        if (name === "char" || name === "string")
+            return typeText
+        if (name === "float" || name === "double")
+            return typeFloat
+        if (/^u?int\d+$/.test(name) || name === "bool")
+            return typeInteger
+        if (name === "struct" || name === "registro")
+            return typeStruct
+        return name === "" ? fallback : typeCustom
+    }
 
     // Larguras iniciais das colunas, na ordem das colunas dos models.
     readonly property list<int> schemaColumnWidths: [190, 110, 70, 70, 100]

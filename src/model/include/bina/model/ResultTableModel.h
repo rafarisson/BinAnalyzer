@@ -4,6 +4,7 @@
 #include <QList>
 #include <QPointer>
 
+#include "bina/model/EditorRoles.h"
 #include "bina/model/ResultTreeModel.h"
 
 namespace bina::model {
@@ -34,6 +35,10 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
+
+    // As células abrem num editor só para copiar o valor; setData() recusa a gravação.
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
 
     // Os registros são lidos em lotes pela fonte; a tabela pede os seguintes do mesmo jeito.
     bool canFetchMore(const QModelIndex &parent) const override;

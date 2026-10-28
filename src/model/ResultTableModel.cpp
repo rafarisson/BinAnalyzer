@@ -85,6 +85,10 @@ QVariant ResultTableModel::data(const QModelIndex &index, int role) const
     switch (role) {
     case Qt::DisplayRole:
         return node ? m_source->formatValue(*node) : QString();
+    case Qt::EditRole:
+        return node ? m_source->formatValue(*node) : QString();
+    case EditorKindRole:
+        return node ? QVariant(QString(EditorKinds::kReadOnly)) : QVariant();
     case FormatIdRole:
         return node ? m_source->effectiveFormatId(*node) : QString();
     case TruncatedRole:
@@ -98,11 +102,26 @@ QHash<int, QByteArray> ResultTableModel::roleNames() const
 {
     static const QHash<int, QByteArray> names{
         { Qt::DisplayRole,  "display" },
+        { Qt::EditRole,     "edit" },
         { FormatIdRole,     "formatId" },
-        { TruncatedRole,    "truncated" }
+        { TruncatedRole,    "truncated" },
+        { EditorKindRole,   "editorKind" }
     };
 
     return names;
+}
+
+Qt::ItemFlags ResultTableModel::flags(const QModelIndex &index) const
+{
+    if (!index.isValid() || !nodeAt(index.row(), index.column()))
+        return Qt::NoItemFlags;
+
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+}
+
+bool ResultTableModel::setData(const QModelIndex &, const QVariant &, int)
+{
+    return false;
 }
 
 bool ResultTableModel::canFetchMore(const QModelIndex &parent) const

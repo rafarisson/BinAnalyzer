@@ -29,6 +29,10 @@ ColumnLayout {
         tree.expandAll()
     }
 
+    function collapseAll() {
+        tree.collapseAll()
+    }
+
     spacing: 0
 
     RowLayout {
@@ -36,11 +40,6 @@ ColumnLayout {
 
         Layout.fillWidth: true
         Layout.margins: Theme.pagePadding
-
-        Label {
-            text: qsTr("Tipos")
-            font.bold: true
-        }
 
         ComboBox {
             id: combo

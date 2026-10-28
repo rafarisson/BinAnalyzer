@@ -11,7 +11,7 @@ namespace bina::model {
 // Roles comuns aos models editáveis. Dizem à view qual editor abrir para uma célula e com que
 // opções, para o delegate escolher o editor sem conhecer as colunas do model.
 enum EditorRole {
-    EditorKindRole = Qt::UserRole + 100,    // "text", "combo", "spin" ou vazio (não editável)
+    EditorKindRole = Qt::UserRole + 100,    // "text", "combo", "spin", "readonly" ou vazio (não editável)
     ChoicesRole,                            // combo: lista de {value, text}
     MinimumRole,                            // spin
     MaximumRole                             // spin
@@ -22,6 +22,9 @@ namespace EditorKinds {
 inline constexpr QLatin1StringView kText  ("text");
 inline constexpr QLatin1StringView kCombo ("combo");
 inline constexpr QLatin1StringView kSpin  ("spin");
+
+// Texto que só se seleciona e copia: o model recusa a gravação.
+inline constexpr QLatin1StringView kReadOnly ("readonly");
 
 }
 

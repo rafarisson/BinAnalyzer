@@ -55,6 +55,8 @@ Item {
         columnSpacing: 1
         rowSpacing: 1
         model: root.model
+        selectionModel: ItemSelectionModel {}
+        editTriggers: TableView.DoubleTapped | TableView.EditKeyPressed
         columnWidthProvider: function (column) {
             const header = String(root.model.headerData(column, Qt.Horizontal, Qt.DisplayRole))
             return Math.max(120, header.length * 8 + 24)
@@ -71,6 +73,8 @@ Item {
             required property string display
             required property string formatId
             required property bool truncated
+            required property bool editing
+            required property var model
 
             implicitWidth: 120
             implicitHeight: Theme.rowHeight
@@ -88,6 +92,16 @@ Item {
                 elide: Text.ElideRight
                 font.family: Theme.monoFont
                 opacity: cell.truncated ? Theme.dimmedOpacity : 1
+                visible: !cell.editing
+            }
+
+            // O valor abre num editor só para ser selecionado e copiado; o model recusa a gravação.
+            TableView.editDelegate: CellEditDelegate {
+                width: parent.width
+                height: parent.height
+                view: table
+                itemIndex: table.index(cell.row, cell.column)
+                cellData: cell.model
             }
 
             HoverHandler {

@@ -29,6 +29,7 @@ FocusScope {
             switch (root.cellData.editorKind) {
             case "combo": return comboEditor
             case "spin": return spinEditor
+            case "readonly": return readOnlyEditor
             default: return textEditor
             }
         }
@@ -51,6 +52,19 @@ FocusScope {
             itemIndex: root.itemIndex
             choices: root.cellData.choices
             onFinished: root.view.closeEditor()
+        }
+    }
+
+    // Só seleciona e copia; o model recusa a gravação.
+    Component {
+        id: readOnlyEditor
+
+        TextCellEditor {
+            itemModel: root.itemModel
+            itemIndex: root.itemIndex
+            readOnly: true
+            selectByMouse: true
+            font.family: Theme.monoFont
         }
     }
 

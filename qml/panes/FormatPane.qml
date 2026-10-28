@@ -40,11 +40,6 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.margins: Theme.pagePadding
 
-        Label {
-            text: qsTr("Formatos")
-            font.bold: true
-        }
-
         ComboBox {
             id: combo
 

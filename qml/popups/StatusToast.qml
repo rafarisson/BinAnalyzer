@@ -1,38 +1,71 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
+import QtQuick.Layouts
 import QtQuick.Controls.Basic
 
-// Aviso rápido no pé da janela; some sozinho.
-Rectangle {
+// Avisos empilhados no pé da janela. Os avisos comuns somem sozinhos; os erros ficam até serem
+// dispensados (botão ✕ ou clique).
+Column {
     id: root
 
+    readonly property int maxToasts: 4
+
     function show(text, isError) {
-        label.text = text
-        color = isError ? Theme.errorBackground : Theme.warningBackground
-        label.color = isError ? Theme.errorText : Theme.warningText
-        visible = true
-        hideTimer.restart()
+        if (toasts.count >= maxToasts)
+            toasts.remove(0)
+        toasts.append({ "message": text, "isError": isError })
     }
 
-    visible: false
-    radius: 4
-    border.color: Qt.darker(color, 1.15)
-    implicitWidth: Math.min(label.implicitWidth + 2 * Theme.cellPadding, 700)
-    implicitHeight: label.implicitHeight + 2 * Theme.pagePadding
+    spacing: 6
 
-    Label {
-        id: label
-
-        anchors.fill: parent
-        anchors.margins: Theme.pagePadding
-        wrapMode: Text.WordWrap
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
+    ListModel {
+        id: toasts
     }
 
-    Timer {
-        id: hideTimer
+    Repeater {
+        model: toasts
 
-        interval: 5000
-        onTriggered: root.visible = false
+        delegate: Rectangle {
+            id: toast
+
+            required property int index
+            required property string message
+            required property bool isError
+
+            radius: 4
+            color: isError ? Theme.errorBackground : Theme.warningBackground
+            border.color: Qt.darker(color, 1.15)
+            implicitWidth: row.implicitWidth + 2 * Theme.pagePadding
+            implicitHeight: row.implicitHeight + 2 * Theme.pagePadding
+
+            RowLayout {
+                id: row
+
+                anchors.fill: parent
+                anchors.margins: Theme.pagePadding
+
+                Label {
+                    text: toast.message
+                    color: toast.isError ? Theme.errorText : Theme.warningText
+                    wrapMode: Text.WordWrap
+                    Layout.maximumWidth: 640
+                    Layout.fillWidth: true
+                }
+
+                IconButton {
+                    glyph: Icons.close
+                    implicitWidth: 24
+                    implicitHeight: 24
+                    onClicked: toasts.remove(toast.index)
+                }
+            }
+
+            Timer {
+                interval: 5000
+                running: !toast.isError
+                onTriggered: toasts.remove(toast.index)
+            }
+        }
     }
 }

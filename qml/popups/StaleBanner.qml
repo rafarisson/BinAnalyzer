@@ -18,15 +18,22 @@ Rectangle {
         anchors.fill: parent
         anchors.margins: Theme.pagePadding
 
+        Icon {
+            text: Icons.alert
+            color: Theme.warningText
+            Layout.leftMargin: 4
+        }
+
         Label {
-            text: qsTr("A estrutura, os tipos ou os formatos foram alterados: os dados abaixo estão desatualizados. Analise o arquivo novamente.")
+            text: qsTr("A estrutura, os tipos ou os formatos foram alterados: os dados abaixo estão desatualizados.")
             color: Theme.warningText
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
         }
 
         Button {
-            text: qsTr("Analisar novamente")
+            text: qsTr("Analisar (F5)")
+            highlighted: true
             onClicked: root.reanalyzeRequested()
         }
     }

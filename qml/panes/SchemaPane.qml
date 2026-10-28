@@ -3,28 +3,106 @@ import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import Bina.App
 
-// Painel da estrutura: os campos do documento e, abaixo, os tipos e os formatos customizados.
+// Painel da estrutura, uma visão por aba: os campos do documento, os tipos customizados e os
+// formatos customizados.
 ColumnLayout {
     id: root
 
     required property AppController app
 
-    // A estrutura e a árvore do tipo customizado.
+    readonly property int typesTab: 1
+    readonly property int formatsTab: 2
+
+    // Expandir e recolher valem para a árvore da aba aberta.
     function expandAll() {
-        view.expandAll()
-        definitions.expandAll()
+        if (tabs.currentIndex === typesTab)
+            typePane.expandAll()
+        else if (tabs.currentIndex !== formatsTab)
+            view.expandAll()
+    }
+
+    function collapseAll() {
+        if (tabs.currentIndex === typesTab)
+            typePane.collapseAll()
+        else if (tabs.currentIndex !== formatsTab)
+            view.collapseAll()
     }
 
     spacing: 0
 
-    Label {
-        text: qsTr("Estrutura")
-        font.bold: true
-        Layout.margins: Theme.pagePadding
+    Rectangle {
+        color: Theme.headerBackground
+        implicitHeight: Theme.headerHeight
+        Layout.fillWidth: true
+
+        Rectangle {
+            anchors.bottom: parent.bottom
+            width: parent.width
+            height: 1
+            color: Theme.headerBorder
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.rightMargin: Theme.pagePadding
+            spacing: Theme.pagePadding
+
+            TabBar {
+                id: tabs
+
+                background: null
+                Layout.fillHeight: true
+
+                component HeaderTab: TabButton {
+                    id: tab
+
+                    implicitHeight: Theme.headerHeight
+                    contentItem: Label {
+                        text: tab.text
+                        font.bold: tab.checked
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                    background: Rectangle {
+                        color: "transparent"
+
+                        Rectangle {
+                            anchors.bottom: parent.bottom
+                            width: parent.width
+                            height: 2
+                            color: Theme.accent
+                            visible: tab.checked
+                        }
+                    }
+                }
+
+                HeaderTab {
+                    text: qsTr("Estrutura")
+                }
+
+                HeaderTab {
+                    text: qsTr("Tipos")
+                }
+
+                HeaderTab {
+                    text: qsTr("Formatos")
+                }
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            TreeActions {
+                visible: tabs.currentIndex !== root.formatsTab
+                onExpandRequested: root.expandAll()
+                onCollapseRequested: root.collapseAll()
+            }
+        }
     }
 
-    SplitView {
-        orientation: Qt.Vertical
+    StackLayout {
+        currentIndex: tabs.currentIndex
         Layout.fillWidth: true
         Layout.fillHeight: true
 
@@ -32,17 +110,17 @@ ColumnLayout {
             id: view
 
             model: root.app.schemaModel
-            SplitView.fillHeight: true
-            SplitView.minimumHeight: 120
         }
 
-        DefinitionsPane {
-            id: definitions
+        TypePane {
+            id: typePane
 
             app: root.app
+            typeController: root.app.typeController
+        }
 
-            SplitView.preferredHeight: 260
-            SplitView.minimumHeight: 120
+        FormatPane {
+            formatController: root.app.formatController
         }
     }
 }

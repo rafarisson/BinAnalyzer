@@ -300,6 +300,7 @@ QVariant ResultTreeModel::data(const QModelIndex &index, int role) const
         return {};
 
     const bool editable = index.column() == FormatColumn && !isRecord(*node);
+    const bool isCopyable = index.column() == ValueColumn && !isRecord(*node);
 
     switch (role) {
     case TruncatedRole:
@@ -307,6 +308,8 @@ QVariant ResultTreeModel::data(const QModelIndex &index, int role) const
     case FormatIdRole:
         return effectiveFormatId(*node);
     case EditorKindRole:
+        if (isCopyable)
+            return QString(EditorKinds::kReadOnly);
         return editable ? QVariant(QString(EditorKinds::kCombo)) : QVariant();
     case ChoicesRole:
         return editable ? QVariant(makeChoices(compatibleFormatsFor(*node), true)) : QVariant();
@@ -314,6 +317,8 @@ QVariant ResultTreeModel::data(const QModelIndex &index, int role) const
         return index.column() == OffsetColumn || index.column() == SizeColumn
                    ? QVariant(Qt::AlignRight | Qt::AlignVCenter) : QVariant();
     case Qt::EditRole:
+        if (isCopyable)
+            return formatValue(*node);
         return index.column() == FormatColumn ? QVariant(effectiveFormatId(*node)) : QVariant();
     case Qt::DisplayRole:
         break;
@@ -360,7 +365,8 @@ Qt::ItemFlags ResultTreeModel::flags(const QModelIndex &index) const
 
     Qt::ItemFlags result = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 
-    if (index.column() == FormatColumn && !isRecord(*nodeFromIndex(index)))
+    // O valor formatado "abre" num editor para ser copiado; setData() recusa a gravação.
+    if ((index.column() == FormatColumn || index.column() == ValueColumn) && !isRecord(*nodeFromIndex(index)))
         result |= Qt::ItemIsEditable;
 
     return result;

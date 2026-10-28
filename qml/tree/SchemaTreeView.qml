@@ -18,6 +18,10 @@ Item {
         tree.expandRecursively()
     }
 
+    function collapseAll() {
+        tree.collapseRecursively()
+    }
+
     // Chamados pelos delegates (coluna do nome).
     function openMenu(index, position) {
         contextMenu.openFor(index, root, position.x, position.y)
@@ -73,6 +77,15 @@ Item {
                 }
 
                 Component.onCompleted: Qt.callLater(expandRecursively)
+            }
+
+            EmptyState {
+                visible: tree.rows === 0
+                anchors.fill: parent
+                title: qsTr("Nenhum campo ainda")
+                hint: qsTr("Adicione o primeiro campo. Depois, clique com o botão direito num campo para inserir, remover ou arrastar.")
+                actionText: qsTr("Adicionar campo")
+                onActionRequested: root.model.trigger(root.model.index(-1, -1), "insertInside")
             }
 
             TreeDragAdapter {
