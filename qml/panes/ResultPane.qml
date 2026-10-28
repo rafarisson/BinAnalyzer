@@ -58,19 +58,63 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
 
-        StackLayout {
+        SplitView {
             anchors.fill: parent
-            currentIndex: switcher.tableMode ? 1 : 0
+            orientation: Qt.Vertical
 
-            ResultTreeView {
-                id: treeView
+            // O cabeçalho do arquivo (só se a análise o incluiu), no mesmo modo de exibição dos dados.
+            ColumnLayout {
+                visible: root.app.session.hasHeader
+                spacing: 0
+                SplitView.preferredHeight: 200
+                SplitView.minimumHeight: Theme.headerHeight + 60
 
-                model: root.app.resultModel
-                session: root.app.session
+                PaneHeader {
+                    title: qsTr("Cabeçalho")
+                    badge: qsTr("%1 bytes").arg(root.app.session.headerSize)
+                    Layout.fillWidth: true
+
+                    TreeActions {
+                        visible: !switcher.tableMode
+                        onExpandRequested: headerTree.expandAll()
+                        onCollapseRequested: headerTree.collapseAll()
+                    }
+                }
+
+                StackLayout {
+                    currentIndex: switcher.tableMode ? 1 : 0
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    ResultTreeView {
+                        id: headerTree
+
+                        header: true
+                        model: root.app.headerModel
+                        session: root.app.session
+                    }
+
+                    ResultTableView {
+                        model: root.app.headerTableModel
+                    }
+                }
             }
 
-            ResultTableView {
-                model: root.app.tableModel
+            StackLayout {
+                currentIndex: switcher.tableMode ? 1 : 0
+                SplitView.fillHeight: true
+                SplitView.minimumHeight: 120
+
+                ResultTreeView {
+                    id: treeView
+
+                    model: root.app.resultModel
+                    session: root.app.session
+                }
+
+                ResultTableView {
+                    model: root.app.tableModel
+                }
             }
         }
 

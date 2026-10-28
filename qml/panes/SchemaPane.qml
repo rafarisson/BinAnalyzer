@@ -3,20 +3,23 @@ import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import Bina.App
 
-// Painel da estrutura, uma visão por aba: os campos do documento, os tipos customizados e os
-// formatos customizados.
+// Painel da estrutura, uma visão por aba: os campos do documento, o cabeçalho do arquivo, os tipos
+// customizados e os formatos customizados.
 ColumnLayout {
     id: root
 
     required property AppController app
 
-    readonly property int typesTab: 1
-    readonly property int formatsTab: 2
+    readonly property int headerTab: 1
+    readonly property int typesTab: 2
+    readonly property int formatsTab: 3
 
     // Expandir e recolher valem para a árvore da aba aberta.
     function expandAll() {
         if (tabs.currentIndex === typesTab)
             typePane.expandAll()
+        else if (tabs.currentIndex === headerTab)
+            headerPane.expandAll()
         else if (tabs.currentIndex !== formatsTab)
             view.expandAll()
     }
@@ -24,6 +27,8 @@ ColumnLayout {
     function collapseAll() {
         if (tabs.currentIndex === typesTab)
             typePane.collapseAll()
+        else if (tabs.currentIndex === headerTab)
+            headerPane.collapseAll()
         else if (tabs.currentIndex !== formatsTab)
             view.collapseAll()
     }
@@ -81,6 +86,10 @@ ColumnLayout {
                 }
 
                 HeaderTab {
+                    text: qsTr("Cabeçalho")
+                }
+
+                HeaderTab {
                     text: qsTr("Tipos")
                 }
 
@@ -110,6 +119,13 @@ ColumnLayout {
             id: view
 
             model: root.app.schemaModel
+        }
+
+        TypePane {
+            id: headerPane
+
+            app: root.app
+            typeController: root.app.headerController
         }
 
         TypePane {

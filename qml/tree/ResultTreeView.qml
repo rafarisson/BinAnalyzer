@@ -10,6 +10,11 @@ Item {
     required property ResultTreeModel model
     required property AnalysisSession session
 
+    // A árvore do cabeçalho: um único registro, sem os detalhes do campo.
+    property bool header: false
+
+    readonly property bool manyRecords: !header && session.recordCount > 1
+
     // Com vários registros, "Expandir tudo" abre só os registros visíveis e mais uma página, e
     // continua abrindo os que aparecem ao rolar: abrir de uma vez milhares de registros (cada grupo
     // aberto é inserido um a um no TreeView) trava a janela.
@@ -19,7 +24,7 @@ Item {
     readonly property int expandBatch: 50
 
     function expandAll() {
-        if (root.session.recordCount > 1) {
+        if (root.manyRecords) {
             expandEverything = true
             expandVisible()
         } else {
@@ -63,7 +68,7 @@ Item {
     // Um registro é mostrado todo aberto; vários registros começam com os campos de cada registro
     // visíveis e os grupos internos fechados.
     function expandInitial() {
-        if (root.session.recordCount > 1)
+        if (root.manyRecords)
             tree.expandRecursively(-1, 1)
         else
             tree.expandRecursively()
@@ -111,7 +116,7 @@ Item {
         ResultDetails {
             model: root.model
             currentIndex: selection.currentIndex
-            visible: root.session.hasData
+            visible: root.session.hasData && !root.header
             Layout.fillWidth: true
         }
     }
