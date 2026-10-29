@@ -20,11 +20,12 @@ ApplicationWindow {
         close()
     }
 
+    // A janela só aparece depois de restaurar a posição e o tamanho (ver Component.onCompleted).
     width: 1400
     height: 760
     minimumWidth: 700
     minimumHeight: 300
-    visible: true
+    visible: false
     title: app.windowTitle
     color: Theme.window
 
@@ -50,6 +51,52 @@ ApplicationWindow {
         link: Theme.accent
     }
 
+    // A área gravada ainda aparece em algum monitor? (Um monitor pode ter sido desconectado.)
+    function fitsOnAScreen(rect) {
+        for (const screen of Qt.application.screens) {
+            const width = Math.min(rect.x + rect.width, screen.virtualX + screen.width) - Math.max(rect.x, screen.virtualX)
+            const height = Math.min(rect.y + rect.height, screen.virtualY + screen.height) - Math.max(rect.y, screen.virtualY)
+
+            // A barra de título precisa estar à vista para a janela poder ser movida.
+            if (width >= 120 && height >= 60 && rect.y >= screen.virtualY && rect.y < screen.virtualY + screen.height - 40)
+                return true
+        }
+        return false
+    }
+
+    function restoreWindow() {
+        const rect = AppSettings.windowRect
+
+        if (rect.width > 0 && window.fitsOnAScreen(rect)) {
+            window.x = rect.x
+            window.y = rect.y
+            window.width = Math.max(window.minimumWidth, rect.width)
+            window.height = Math.max(window.minimumHeight, rect.height)
+        }
+
+        window.visible = true
+
+        if (AppSettings.windowMaximized)
+            window.showMaximized()
+    }
+
+    // Guarda a janela (só a área normal: maximizada, vale a de antes) e a largura da estrutura.
+    function saveWindow() {
+        if (window.visibility === Window.Windowed) {
+            AppSettings.windowRect = Qt.rect(window.x, window.y, window.width, window.height)
+            AppSettings.windowMaximized = false
+        } else if (window.visibility === Window.Maximized) {
+            AppSettings.windowMaximized = true
+        }
+
+        if (schemaPane.width > 0)
+            AppSettings.schemaPaneWidth = Math.round(schemaPane.width)
+
+        AppSettings.sync()
+    }
+
+    Component.onCompleted: restoreWindow()
+
     function saveSchema() {
         if (app.schemaPath === "")
             saveSchemaDialog.open()
@@ -58,6 +105,8 @@ ApplicationWindow {
     }
 
     onClosing: close => {
+        window.saveWindow()
+
         if (app.dirty && !closeConfirmed) {
             close.accepted = false
             confirmClose.open()
@@ -84,7 +133,10 @@ ApplicationWindow {
 
         title: qsTr("Abrir estrutura")
         nameFilters: [qsTr("Estrutura (*.json)"), qsTr("Todos os arquivos (*)")]
-        onAccepted: window.app.openSchema(selectedFile.toString())
+        onAccepted: {
+            AppSettings.rememberFolder("schema", selectedFile)
+            window.app.openSchema(selectedFile.toString())
+        }
     }
 
     FileDialog {
@@ -95,6 +147,7 @@ ApplicationWindow {
         defaultSuffix: "json"
         nameFilters: [qsTr("Estrutura (*.json)")]
         onAccepted: {
+            AppSettings.rememberFolder("schema", selectedFile)
             const saved = window.app.saveSchemaAs(selectedFile.toString())
 
             if (saved && window.closeAfterSave)
@@ -109,7 +162,10 @@ ApplicationWindow {
         id: openDataDialog
 
         title: qsTr("Abrir arquivo binário")
-        onAccepted: window.app.openData(selectedFile.toString())
+        onAccepted: {
+            AppSettings.rememberFolder("data", selectedFile)
+            window.app.openData(selectedFile.toString())
+        }
     }
 
     FileDialog {
@@ -119,7 +175,36 @@ ApplicationWindow {
         fileMode: FileDialog.SaveFile
         defaultSuffix: "json"
         nameFilters: [qsTr("JSON - árvore (*.json)"), qsTr("CSV - tabela (*.csv)")]
-        onAccepted: window.app.exportResult(selectedFile.toString())
+        onAccepted: {
+            AppSettings.rememberFolder("export", selectedFile)
+            window.app.exportResult(selectedFile.toString())
+        }
+    }
+
+    // Cada diálogo abre na última pasta usada nele. A ligação (e não uma atribuição) continua valendo
+    // depois de o diálogo navegar por conta própria.
+    Binding {
+        target: openSchemaDialog
+        property: "currentFolder"
+        value: AppSettings.schemaFolder
+    }
+
+    Binding {
+        target: saveSchemaDialog
+        property: "currentFolder"
+        value: AppSettings.schemaFolder
+    }
+
+    Binding {
+        target: openDataDialog
+        property: "currentFolder"
+        value: AppSettings.dataFolder
+    }
+
+    Binding {
+        target: exportResultDialog
+        property: "currentFolder"
+        value: AppSettings.exportFolder
     }
 
     BinaDialog {
@@ -171,7 +256,7 @@ ApplicationWindow {
             id: schemaPane
 
             app: window.app
-            SplitView.preferredWidth: 560
+            SplitView.preferredWidth: AppSettings.schemaPaneWidth > 0 ? AppSettings.schemaPaneWidth : 560
             SplitView.minimumWidth: 300
         }
 
@@ -226,6 +311,16 @@ ApplicationWindow {
 
         function onMessageAdded(text, isError) {
             toast.show(text, isError)
+        }
+
+        // Os arquivos abertos (ou salvos) entram nos recentes, venham de onde vierem: diálogo,
+        // soltar na janela, menu de recentes. Os exemplos embutidos não entram.
+        function onSchemaPathChanged() {
+            AppSettings.addRecentSchema(window.app.schemaPath)
+        }
+
+        function onDataPathChanged() {
+            AppSettings.addRecentData(window.app.dataPath)
         }
     }
 }

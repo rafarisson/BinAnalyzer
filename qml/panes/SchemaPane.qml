@@ -58,6 +58,19 @@ ColumnLayout {
                 background: null
                 Layout.fillHeight: true
 
+                // A aba aberta na última vez; cada troca é guardada. Enquanto as abas são criadas o
+                // índice passa por 0, que não pode sobrescrever a aba guardada.
+                property bool restoring: true
+
+                Component.onCompleted: {
+                    currentIndex = AppSettings.schemaTab
+                    restoring = false
+                }
+                onCurrentIndexChanged: {
+                    if (!restoring)
+                        AppSettings.schemaTab = currentIndex
+                }
+
                 component HeaderTab: TabButton {
                     id: tab
 

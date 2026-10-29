@@ -131,6 +131,22 @@ ToolBar {
                 BinaMenuItem {
                     action: saveAsAction
                 }
+                MenuSeparator {}
+                RecentMenu {
+                    title: qsTr("Estruturas recentes")
+                    paths: AppSettings.recentSchemas
+                    onChosen: path => root.app.openSchema(path)
+                }
+                RecentMenu {
+                    title: qsTr("Binários recentes")
+                    paths: AppSettings.recentData
+                    onChosen: path => root.app.openData(path)
+                }
+                BinaMenuItem {
+                    text: qsTr("Limpar recentes")
+                    enabled: AppSettings.recentSchemas.length + AppSettings.recentData.length > 0
+                    onTriggered: AppSettings.clearRecent()
+                }
             }
         }
 

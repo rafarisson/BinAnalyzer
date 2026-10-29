@@ -19,7 +19,8 @@ Rectangle {
     readonly property int formatColumn: 4
     readonly property int valueColumn: 5
 
-    property bool expanded: true
+    // Recolhida ou aberta como na última vez; cada troca é guardada.
+    property bool expanded: AppSettings.detailsExpanded
     property var info: ({})
 
     function cell(index, column) {
@@ -50,6 +51,7 @@ Rectangle {
     }
 
     onCurrentIndexChanged: refresh()
+    onExpandedChanged: AppSettings.detailsExpanded = expanded
 
     color: Theme.surface
     implicitHeight: expanded ? 132 : Theme.headerHeight - 6

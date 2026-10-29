@@ -1,12 +1,20 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
+import Bina.App
 
 // Alterna entre a visão em árvore e a visão em tabela (controle segmentado).
 SegmentedControl {
     id: root
 
     readonly property bool tableMode: tableButton.checked
+
+    // A vista usada na última vez; cada troca é guardada.
+    Component.onCompleted: {
+        if (AppSettings.tableMode)
+            tableButton.checked = true
+    }
+    onTableModeChanged: AppSettings.tableMode = tableMode
 
     SegmentedButton {
         id: treeButton

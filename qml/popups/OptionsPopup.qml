@@ -50,22 +50,37 @@ BinaPopup {
             SegmentedButton {
                 text: qsTr("Sistema")
                 glyph: Icons.monitor
-                checked: Theme.mode === Theme.modeSystem
-                onClicked: Theme.mode = Theme.modeSystem
+
+                // Presa ao tema: o clique alterna a marca por conta própria, e a restauração das
+                // preferências também precisa atualizá-la.
+                Binding on checked {
+                    value: Theme.mode === Theme.modeSystem
+                }
+                onClicked: AppSettings.themeMode = Theme.modeSystem
             }
 
             SegmentedButton {
                 text: qsTr("Claro")
                 glyph: Icons.whiteBalanceSunny
-                checked: Theme.mode === Theme.modeLight
-                onClicked: Theme.mode = Theme.modeLight
+
+                // Presa ao tema: o clique alterna a marca por conta própria, e a restauração das
+                // preferências também precisa atualizá-la.
+                Binding on checked {
+                    value: Theme.mode === Theme.modeLight
+                }
+                onClicked: AppSettings.themeMode = Theme.modeLight
             }
 
             SegmentedButton {
                 text: qsTr("Escuro")
                 glyph: Icons.weatherNight
-                checked: Theme.mode === Theme.modeDark
-                onClicked: Theme.mode = Theme.modeDark
+
+                // Presa ao tema: o clique alterna a marca por conta própria, e a restauração das
+                // preferências também precisa atualizá-la.
+                Binding on checked {
+                    value: Theme.mode === Theme.modeDark
+                }
+                onClicked: AppSettings.themeMode = Theme.modeDark
             }
         }
 
@@ -110,7 +125,7 @@ BinaPopup {
                     }
 
                     TapHandler {
-                        onTapped: Theme.accentId = swatch.modelData.id
+                        onTapped: AppSettings.accentId = swatch.modelData.id
                     }
 
                     ToolTip.visible: swatchHover.hovered
@@ -179,5 +194,34 @@ BinaPopup {
                 ToolTip.text: qsTr("Copia de novo os tipos que vêm com o programa, substituindo os de mesmo nome.")
             }
         }
+
+        MenuSeparator {
+            Layout.fillWidth: true
+        }
+
+        BinaButton {
+            text: qsTr("Restaurar preferências")
+            flat: true
+            Layout.alignment: Qt.AlignLeft
+            onClicked: {
+                root.close()
+                resetConfirm.open()
+            }
+
+            ToolTip.visible: hovered
+            ToolTip.delay: 500
+            ToolTip.text: qsTr("Volta a aparência, a janela, as pastas dos diálogos e os arquivos recentes ao padrão.")
+        }
+    }
+
+    // Fora do popup das opções, que fecha antes de a confirmação abrir.
+    ConfirmPopup {
+        id: resetConfirm
+
+        parent: Overlay.overlay
+        title: qsTr("Restaurar preferências")
+        text: qsTr("Voltar a aparência, a janela, as pastas dos diálogos e os arquivos recentes ao padrão?")
+        confirmText: qsTr("Restaurar")
+        onConfirmed: AppSettings.resetToDefaults()
     }
 }

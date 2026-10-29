@@ -48,6 +48,7 @@ set(BINA_QML_FILES
     qml/controls/BinaScrollBar.qml
     qml/controls/BinaMenu.qml
     qml/controls/BinaMenuItem.qml
+    qml/controls/RecentMenu.qml
     qml/controls/BinaPopup.qml
     qml/controls/BinaDialog.qml
     qml/controls/BinaPopupBackground.qml

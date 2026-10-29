@@ -8,7 +8,7 @@ MenuItem {
     implicitHeight: Theme.controlHeight - 2
     implicitWidth: Math.max(160, implicitContentWidth + leftPadding + rightPadding)
     leftPadding: Theme.spacingMd
-    rightPadding: Theme.spacingMd
+    rightPadding: Theme.spacingMd + (subMenu ? 16 : 0)
     topPadding: 0
     bottomPadding: 0
     spacing: Theme.spacingSm
@@ -22,7 +22,15 @@ MenuItem {
         color: Theme.accent
     }
 
-    arrow: null
+    // Seta dos itens que abrem um submenu.
+    arrow: Icon {
+        x: root.width - width - Theme.spacingXs
+        y: (root.height - height) / 2
+        visible: root.subMenu
+        text: Icons.chevronRight
+        font.pixelSize: 16
+        color: Theme.textSecondary
+    }
 
     contentItem: Item {
         implicitWidth: label.implicitWidth + (shortcut.visible ? shortcut.implicitWidth + 24 : 0)

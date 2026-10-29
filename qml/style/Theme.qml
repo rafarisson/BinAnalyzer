@@ -1,11 +1,12 @@
 pragma Singleton
 
 import QtQuick
-import QtCore
+import Bina.App
 
 // Constantes visuais do aplicativo: tokens de cor, tipografia, espaçamento, raios e animação. A
-// aparência (sistema, claro ou escuro) e a cor de destaque são escolhidas pela pessoa e guardadas
-// entre execuções; "sistema" acompanha o esquema claro/escuro do sistema.
+// aparência (sistema, claro ou escuro) e a cor de destaque são escolhidas pela pessoa e guardadas nas
+// preferências (AppSettings); "sistema" acompanha o esquema claro/escuro do sistema. Para trocar,
+// altere AppSettings.themeMode e AppSettings.accentId.
 QtObject {
     id: root
 
@@ -13,11 +14,12 @@ QtObject {
     readonly property string modeLight: "light"
     readonly property string modeDark: "dark"
 
-    // Escolhas da pessoa (persistidas).
-    property string mode: modeSystem
-    property string accentId: "blue"
+    // Escolhas da pessoa (vêm das preferências).
+    readonly property string mode: AppSettings.themeMode
+    readonly property string accentId: AppSettings.accentId
 
-    // Cores de destaque disponíveis; cada uma tem o tom para o fundo claro e para o escuro.
+    // Cores de destaque disponíveis; cada uma tem o tom para o fundo claro e para o escuro. Os ids são
+    // os aceitos por AppSettings (AppSettings::accentIds).
     readonly property var accents: [
         { "id": "blue", "name": qsTr("Azul"), "light": "#1f6fd6", "dark": "#3b82e0" },
         { "id": "teal", "name": qsTr("Turquesa"), "light": "#0f7f8a", "dark": "#1f9aa6" },
@@ -151,11 +153,4 @@ QtObject {
     readonly property color dropValid: dark ? "#5b9bf0" : "#2b7de9"
     readonly property color dropInvalid: dark ? "#e57373" : "#d64545"
     readonly property color ghostBackground: dark ? "#25324a" : "#e8f0fe"
-
-    readonly property Settings store: Settings {
-        category: "Appearance"
-
-        property alias mode: root.mode
-        property alias accentId: root.accentId
-    }
 }
