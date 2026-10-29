@@ -33,7 +33,7 @@
     </message>
     <message>
         <location filename="../qml/AppToolBar.qml" line="52"/>
-        <location filename="../qml/AppToolBar.qml" line="140"/>
+        <location filename="../qml/AppToolBar.qml" line="156"/>
         <source>Salvar</source>
         <translation>Save</translation>
     </message>
@@ -48,7 +48,7 @@
         <translation>Open binary…</translation>
     </message>
     <message>
-        <location filename="../qml/AppToolBar.qml" line="158"/>
+        <location filename="../qml/AppToolBar.qml" line="174"/>
         <source>Analisa o arquivo com a estrutura atual</source>
         <translation>Analyzes the file with the current structure</translation>
     </message>
@@ -64,7 +64,7 @@
     </message>
     <message>
         <location filename="../qml/AppToolBar.qml" line="77"/>
-        <location filename="../qml/AppToolBar.qml" line="157"/>
+        <location filename="../qml/AppToolBar.qml" line="173"/>
         <source>Analisar</source>
         <translation>Analyze</translation>
     </message>
@@ -74,22 +74,37 @@
         <translation>File</translation>
     </message>
     <message>
-        <location filename="../qml/AppToolBar.qml" line="182"/>
+        <location filename="../qml/AppToolBar.qml" line="136"/>
+        <source>Estruturas recentes</source>
+        <translation>Recent structures</translation>
+    </message>
+    <message>
+        <location filename="../qml/AppToolBar.qml" line="141"/>
+        <source>Binários recentes</source>
+        <translation>Recent binaries</translation>
+    </message>
+    <message>
+        <location filename="../qml/AppToolBar.qml" line="146"/>
+        <source>Limpar recentes</source>
+        <translation>Clear recent</translation>
+    </message>
+    <message>
+        <location filename="../qml/AppToolBar.qml" line="198"/>
         <source>Exporta o resultado como árvore (JSON) ou tabela (CSV)</source>
         <translation>Exports the result as a tree (JSON) or a table (CSV)</translation>
     </message>
     <message>
-        <location filename="../qml/AppToolBar.qml" line="193"/>
+        <location filename="../qml/AppToolBar.qml" line="209"/>
         <source>Opções</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="../qml/AppToolBar.qml" line="208"/>
+        <location filename="../qml/AppToolBar.qml" line="224"/>
         <source>Mensagens (%1)</source>
         <translation>Messages (%1)</translation>
     </message>
     <message>
-        <location filename="../qml/AppToolBar.qml" line="208"/>
+        <location filename="../qml/AppToolBar.qml" line="224"/>
         <source>Mensagens</source>
         <translation>Messages</translation>
     </message>
@@ -183,53 +198,53 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../qml/Main.qml" line="85"/>
+        <location filename="../qml/Main.qml" line="134"/>
         <source>Abrir estrutura</source>
         <translation>Open structure</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="86"/>
-        <location filename="../qml/Main.qml" line="96"/>
+        <location filename="../qml/Main.qml" line="135"/>
+        <location filename="../qml/Main.qml" line="148"/>
         <source>Estrutura (*.json)</source>
         <translation>Structure (*.json)</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="86"/>
+        <location filename="../qml/Main.qml" line="135"/>
         <source>Todos os arquivos (*)</source>
         <translation>All files (*)</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="93"/>
+        <location filename="../qml/Main.qml" line="145"/>
         <source>Salvar estrutura</source>
         <translation>Save structure</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="111"/>
+        <location filename="../qml/Main.qml" line="164"/>
         <source>Abrir arquivo binário</source>
         <translation>Open binary file</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="118"/>
+        <location filename="../qml/Main.qml" line="174"/>
         <source>Exportar resultado</source>
         <translation>Export result</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="121"/>
+        <location filename="../qml/Main.qml" line="177"/>
         <source>JSON - árvore (*.json)</source>
         <translation>JSON - tree (*.json)</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="121"/>
+        <location filename="../qml/Main.qml" line="177"/>
         <source>CSV - tabela (*.csv)</source>
         <translation>CSV - table (*.csv)</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="128"/>
+        <location filename="../qml/Main.qml" line="213"/>
         <source>Alterações não salvas</source>
         <translation>Unsaved changes</translation>
     </message>
     <message>
-        <location filename="../qml/Main.qml" line="135"/>
+        <location filename="../qml/Main.qml" line="220"/>
         <source>A estrutura tem alterações não salvas. Salvar antes de fechar?</source>
         <translation>The structure has unsaved changes. Save before closing?</translation>
     </message>
@@ -291,90 +306,119 @@
         <translation>System</translation>
     </message>
     <message>
-        <location filename="../qml/popups/OptionsPopup.qml" line="58"/>
+        <location filename="../qml/popups/OptionsPopup.qml" line="63"/>
         <source>Claro</source>
         <translation>Light</translation>
     </message>
     <message>
-        <location filename="../qml/popups/OptionsPopup.qml" line="65"/>
+        <location filename="../qml/popups/OptionsPopup.qml" line="75"/>
         <source>Escuro</source>
         <translation>Dark</translation>
     </message>
     <message>
-        <location filename="../qml/popups/OptionsPopup.qml" line="76"/>
+        <location filename="../qml/popups/OptionsPopup.qml" line="91"/>
         <source>Cor de destaque</source>
         <translation>Accent color</translation>
     </message>
     <message>
-        <location filename="../qml/popups/OptionsPopup.qml" line="128"/>
+        <location filename="../qml/popups/OptionsPopup.qml" line="143"/>
         <source>Dados em big endian</source>
         <translation>Big-endian data</translation>
     </message>
     <message>
-        <location filename="../qml/popups/OptionsPopup.qml" line="137"/>
+        <location filename="../qml/popups/OptionsPopup.qml" line="152"/>
         <source>Alinhamento máximo (bytes)</source>
         <translation>Maximum alignment (bytes)</translation>
     </message>
     <message>
-        <location filename="../qml/popups/OptionsPopup.qml" line="152"/>
+        <location filename="../qml/popups/OptionsPopup.qml" line="167"/>
         <source>Biblioteca de tipos</source>
         <translation>Type library</translation>
     </message>
     <message>
-        <location filename="../qml/popups/OptionsPopup.qml" line="167"/>
+        <location filename="../qml/popups/OptionsPopup.qml" line="182"/>
         <source>Abrir pasta</source>
         <translation>Open folder</translation>
     </message>
     <message>
-        <location filename="../qml/popups/OptionsPopup.qml" line="173"/>
+        <location filename="../qml/popups/OptionsPopup.qml" line="188"/>
         <source>Restaurar tipos padrão</source>
         <translation>Restore default types</translation>
     </message>
     <message>
-        <location filename="../qml/popups/OptionsPopup.qml" line="179"/>
+        <location filename="../qml/popups/OptionsPopup.qml" line="194"/>
         <source>Copia de novo os tipos que vêm com o programa, substituindo os de mesmo nome.</source>
         <translation>Copies the types that ship with the program again, replacing those with the same name.</translation>
+    </message>
+    <message>
+        <location filename="../qml/popups/OptionsPopup.qml" line="203"/>
+        <location filename="../qml/popups/OptionsPopup.qml" line="222"/>
+        <source>Restaurar preferências</source>
+        <translation>Restore preferences</translation>
+    </message>
+    <message>
+        <location filename="../qml/popups/OptionsPopup.qml" line="213"/>
+        <source>Volta a aparência, a janela, as pastas dos diálogos e os arquivos recentes ao padrão.</source>
+        <translation>Resets the appearance, the window, the dialog folders and the recent files to the defaults.</translation>
+    </message>
+    <message>
+        <location filename="../qml/popups/OptionsPopup.qml" line="223"/>
+        <source>Voltar a aparência, a janela, as pastas dos diálogos e os arquivos recentes ao padrão?</source>
+        <translation>Reset the appearance, the window, the dialog folders and the recent files to the defaults?</translation>
+    </message>
+    <message>
+        <location filename="../qml/popups/OptionsPopup.qml" line="224"/>
+        <source>Restaurar</source>
+        <translation>Restore</translation>
+    </message>
+</context>
+<context>
+    <name>RecentMenu</name>
+    <message>
+        <location filename="../qml/controls/RecentMenu.qml" line="27"/>
+        <source>(nenhum)</source>
+        <translation>(none)</translation>
     </message>
 </context>
 <context>
     <name>ResultDetails</name>
     <message>
-        <location filename="../qml/tree/ResultDetails.qml" line="122"/>
+        <location filename="../qml/tree/ResultDetails.qml" line="124"/>
         <source>Detalhes</source>
         <translation>Details</translation>
     </message>
     <message>
-        <location filename="../qml/tree/ResultDetails.qml" line="157"/>
+        <location filename="../qml/tree/ResultDetails.qml" line="159"/>
         <source>Tipo</source>
         <translation>Type</translation>
     </message>
     <message>
-        <location filename="../qml/tree/ResultDetails.qml" line="183"/>
+        <location filename="../qml/tree/ResultDetails.qml" line="185"/>
         <source>Offset</source>
         <translation>Offset</translation>
     </message>
     <message>
-        <location filename="../qml/tree/ResultDetails.qml" line="188"/>
+        <location filename="../qml/tree/ResultDetails.qml" line="190"/>
         <source>Bytes</source>
         <translation>Bytes</translation>
     </message>
     <message>
-        <location filename="../qml/tree/ResultDetails.qml" line="193"/>
+        <location filename="../qml/tree/ResultDetails.qml" line="195"/>
         <source>Exibição</source>
         <translation>Display</translation>
     </message>
     <message>
-        <location filename="../qml/tree/ResultDetails.qml" line="208"/>
+        <location filename="../qml/tree/ResultDetails.qml" line="210"/>
         <source>Valor</source>
         <translation>Value</translation>
     </message>
     <message>
-        <location filename="../qml/tree/ResultDetails.qml" line="224"/>
+        <location filename="../qml/tree/ResultDetails.qml" line="226"/>
         <source>Copiar</source>
         <translation>Copy</translation>
     </message>
     <message>
-        <location filename="../qml/tree/ResultDetails.qml" line="235"/>
+        <location filename="../qml/tree/ResultDetails.qml" line="237"/>
         <source>Selecione um campo para ver os detalhes.</source>
         <translation>Select a field to see its details.</translation>
     </message>
@@ -451,22 +495,22 @@
 <context>
     <name>SchemaPane</name>
     <message>
-        <location filename="../qml/panes/SchemaPane.qml" line="103"/>
+        <location filename="../qml/panes/SchemaPane.qml" line="116"/>
         <source>Estrutura</source>
         <translation>Structure</translation>
     </message>
     <message>
-        <location filename="../qml/panes/SchemaPane.qml" line="107"/>
+        <location filename="../qml/panes/SchemaPane.qml" line="120"/>
         <source>Cabeçalho</source>
         <translation>Header</translation>
     </message>
     <message>
-        <location filename="../qml/panes/SchemaPane.qml" line="111"/>
+        <location filename="../qml/panes/SchemaPane.qml" line="124"/>
         <source>Tipos</source>
         <translation>Types</translation>
     </message>
     <message>
-        <location filename="../qml/panes/SchemaPane.qml" line="115"/>
+        <location filename="../qml/panes/SchemaPane.qml" line="128"/>
         <source>Formatos</source>
         <translation>Formats</translation>
     </message>
@@ -505,27 +549,27 @@
 <context>
     <name>Theme</name>
     <message>
-        <location filename="../qml/style/Theme.qml" line="22"/>
+        <location filename="../qml/style/Theme.qml" line="24"/>
         <source>Azul</source>
         <translation>Blue</translation>
     </message>
     <message>
-        <location filename="../qml/style/Theme.qml" line="23"/>
+        <location filename="../qml/style/Theme.qml" line="25"/>
         <source>Turquesa</source>
         <translation>Teal</translation>
     </message>
     <message>
-        <location filename="../qml/style/Theme.qml" line="24"/>
+        <location filename="../qml/style/Theme.qml" line="26"/>
         <source>Verde</source>
         <translation>Green</translation>
     </message>
     <message>
-        <location filename="../qml/style/Theme.qml" line="25"/>
+        <location filename="../qml/style/Theme.qml" line="27"/>
         <source>Laranja</source>
         <translation>Orange</translation>
     </message>
     <message>
-        <location filename="../qml/style/Theme.qml" line="26"/>
+        <location filename="../qml/style/Theme.qml" line="28"/>
         <source>Roxo</source>
         <translation>Purple</translation>
     </message>
@@ -705,12 +749,12 @@
 <context>
     <name>ViewSwitcher</name>
     <message>
-        <location filename="../qml/panes/ViewSwitcher.qml" line="14"/>
+        <location filename="../qml/panes/ViewSwitcher.qml" line="22"/>
         <source>Árvore</source>
         <translation>Tree</translation>
     </message>
     <message>
-        <location filename="../qml/panes/ViewSwitcher.qml" line="22"/>
+        <location filename="../qml/panes/ViewSwitcher.qml" line="30"/>
         <source>Tabela</source>
         <translation>Table</translation>
     </message>
