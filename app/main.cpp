@@ -28,6 +28,10 @@ int main(int argc, char *argv[])
     controller.openTypeLibrary(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
                                + QStringLiteral("/types"));
 
+    // As preferências (Settings do QML) pedem o nome da organização. Ele entra no AppDataLocation,
+    // então só é definido depois de localizar a biblioteca, para não mudar a pasta dos tipos.
+    QCoreApplication::setOrganizationName(QStringLiteral("BinAnalyzer"));
+
     if (args.size() > 1) {
         controller.openSchema(args.at(1));
         if (args.size() > 2)
