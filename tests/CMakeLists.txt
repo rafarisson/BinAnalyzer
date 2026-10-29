@@ -30,6 +30,7 @@ bina_add_test(tst_document        Bina::io        tst_document.cpp)
 bina_add_test(tst_schematreemodel "Bina::model;Bina::io"   tst_schematreemodel.cpp)
 bina_add_test(tst_session         "Bina::model;Bina::io"   tst_session.cpp)
 bina_add_test(tst_appcontroller   Bina::app       tst_appcontroller.cpp)
+bina_add_test(tst_appsettings     Bina::app       tst_appsettings.cpp)
 
 # Os exemplos também como recurso, como no executável (abrir ":/samples/..." como modelo).
 qt_add_resources(tst_appcontroller "samples"

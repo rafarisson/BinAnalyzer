@@ -8,6 +8,7 @@ qt_add_qml_module(bina_app
     STATIC
     SOURCES
         include/bina/app/AppController.h AppController.cpp
+        include/bina/app/AppSettings.h AppSettings.cpp
         include/bina/app/DocumentService.h DocumentService.cpp
         include/bina/app/ExportService.h ExportService.cpp
         include/bina/app/MessageLog.h MessageLog.cpp

@@ -1,10 +1,16 @@
 #include <QCoreApplication>
 #include <QFileInfo>
+#include <QStandardPaths>
 #include <QUrl>
 
 #include "bina/app/Paths.h"
 
 namespace bina::app {
+
+QString appDataDirectory()
+{
+    return QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+}
 
 QString localPath(const QString &pathOrUrl)
 {

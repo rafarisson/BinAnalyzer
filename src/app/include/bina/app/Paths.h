@@ -6,6 +6,11 @@
 
 namespace bina::app {
 
+// A pasta dos dados do programa para a pessoa: preferências (settings.ini) e a biblioteca de tipos
+// e formatos (types/). Fica no mesmo lugar em todas as máquinas do usuário, sem pasta de organização
+// (no Windows, %LOCALAPPDATA%\BinAnalyzer). O nome da aplicação precisa estar definido.
+QString appDataDirectory();
+
 // Caminho local a partir de um caminho ou de uma URL "file:" (como entregue pelos diálogos do QML).
 QString localPath(const QString &pathOrUrl);
 
