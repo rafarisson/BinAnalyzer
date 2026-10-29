@@ -6,7 +6,9 @@ ToolButton {
     id: root
 
     property string glyph
-    property color contentColor: palette.buttonText
+    property color contentColor: Theme.text
+
+    hoverEnabled: true
 
     contentItem: Item {
         implicitWidth: row.implicitWidth
@@ -32,6 +34,22 @@ ToolButton {
                 font: root.font
                 color: root.contentColor
                 anchors.verticalCenter: parent.verticalCenter
+            }
+        }
+    }
+
+    background: Rectangle {
+        radius: Theme.radiusMedium
+        color: !root.enabled ? "transparent"
+               : root.down ? Theme.pressedOverlay
+               : root.hovered ? Theme.hoverOverlay
+               : "transparent"
+        border.width: root.visualFocus ? 2 : 0
+        border.color: Qt.alpha(Theme.accent, 0.6)
+
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.animFast
             }
         }
     }

@@ -41,6 +41,19 @@ set(BINA_QML_FILES
     qml/style/Icons.qml
     qml/controls/Icon.qml
     qml/controls/IconButton.qml
+    qml/controls/BinaButton.qml
+    qml/controls/BinaTextField.qml
+    qml/controls/BinaComboBox.qml
+    qml/controls/BinaSwitch.qml
+    qml/controls/BinaScrollBar.qml
+    qml/controls/BinaMenu.qml
+    qml/controls/BinaMenuItem.qml
+    qml/controls/BinaPopup.qml
+    qml/controls/BinaDialog.qml
+    qml/controls/BinaPopupBackground.qml
+    qml/controls/SegmentedControl.qml
+    qml/controls/SegmentedButton.qml
+    qml/controls/ColumnHeaderCell.qml
     qml/controls/RowBackground.qml
     qml/controls/SelectableTreeView.qml
     qml/panes/SchemaPane.qml

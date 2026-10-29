@@ -30,4 +30,10 @@ QtObject {
     readonly property string contentCopy: "\uDB80\uDD8F"
     readonly property string fileTree: "\uDB81\uDE45"
     readonly property string tableLarge: "\uDB81\uDCF1"
+    readonly property string check: "\uDB80\uDD2C"
+    readonly property string fileTreeOutline: "\uDB84\uDFD2"
+    readonly property string fileSearchOutline: "\uDB83\uDC7D"
+    readonly property string monitor: "\uDB80\uDF79"
+    readonly property string whiteBalanceSunny: "\uDB81\uDDA8"
+    readonly property string weatherNight: "\uDB81\uDD94"
 }
