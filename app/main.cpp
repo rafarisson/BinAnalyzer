@@ -2,11 +2,11 @@
 #include <QLocale>
 #include <QQmlApplicationEngine>
 #include <QQuickWindow>
-#include <QStandardPaths>
 #include <QTimer>
 #include <QTranslator>
 
 #include "bina/app/AppController.h"
+#include "bina/app/Paths.h"
 
 int main(int argc, char *argv[])
 {
@@ -25,12 +25,7 @@ int main(int argc, char *argv[])
     bina::app::AppController controller;
 
     // Antes de abrir a estrutura, para que os tipos da biblioteca já apareçam nos campos.
-    controller.openTypeLibrary(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
-                               + QStringLiteral("/types"));
-
-    // As preferências (Settings do QML) pedem o nome da organização. Ele entra no AppDataLocation,
-    // então só é definido depois de localizar a biblioteca, para não mudar a pasta dos tipos.
-    QCoreApplication::setOrganizationName(QStringLiteral("BinAnalyzer"));
+    controller.openTypeLibrary(bina::app::appDataDirectory() + QStringLiteral("/types"));
 
     if (args.size() > 1) {
         controller.openSchema(args.at(1));
