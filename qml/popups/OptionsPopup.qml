@@ -3,8 +3,8 @@ import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import Bina.App
 
-// Opções do documento (ordem dos bytes e alinhamento máximo dos campos) e a pasta da biblioteca de
-// tipos.
+// Aparência (tema e cor de destaque), opções do documento (ordem dos bytes e alinhamento máximo dos
+// campos) e a pasta da biblioteca de tipos.
 BinaPopup {
     id: root
 
@@ -37,6 +37,92 @@ BinaPopup {
 
     contentItem: ColumnLayout {
         spacing: Theme.spacingLg
+
+        Label {
+            text: qsTr("Aparência")
+            font.bold: true
+        }
+
+        SegmentedControl {
+            stretch: true
+            Layout.fillWidth: true
+
+            SegmentedButton {
+                text: qsTr("Sistema")
+                glyph: Icons.monitor
+                checked: Theme.mode === Theme.modeSystem
+                onClicked: Theme.mode = Theme.modeSystem
+            }
+
+            SegmentedButton {
+                text: qsTr("Claro")
+                glyph: Icons.whiteBalanceSunny
+                checked: Theme.mode === Theme.modeLight
+                onClicked: Theme.mode = Theme.modeLight
+            }
+
+            SegmentedButton {
+                text: qsTr("Escuro")
+                glyph: Icons.weatherNight
+                checked: Theme.mode === Theme.modeDark
+                onClicked: Theme.mode = Theme.modeDark
+            }
+        }
+
+        RowLayout {
+            spacing: Theme.spacingMd
+
+            Label {
+                text: qsTr("Cor de destaque")
+                color: Theme.textSecondary
+                Layout.rightMargin: Theme.spacingXs
+            }
+
+            Repeater {
+                model: Theme.accents
+
+                delegate: Rectangle {
+                    id: swatch
+
+                    required property var modelData
+
+                    readonly property bool current: Theme.accentId === modelData.id
+
+                    implicitWidth: 22
+                    implicitHeight: 22
+                    radius: width / 2
+                    color: Theme.dark ? modelData.dark : modelData.light
+                    border.width: current ? 2 : 0
+                    border.color: Theme.text
+
+                    Icon {
+                        anchors.centerIn: parent
+                        visible: swatch.current
+                        text: Icons.check
+                        font.pixelSize: 14
+                        color: Theme.accentText
+                    }
+
+                    HoverHandler {
+                        id: swatchHover
+
+                        cursorShape: Qt.PointingHandCursor
+                    }
+
+                    TapHandler {
+                        onTapped: Theme.accentId = swatch.modelData.id
+                    }
+
+                    ToolTip.visible: swatchHover.hovered
+                    ToolTip.delay: 500
+                    ToolTip.text: swatch.modelData.name
+                }
+            }
+        }
+
+        MenuSeparator {
+            Layout.fillWidth: true
+        }
 
         BinaSwitch {
             text: qsTr("Dados em big endian")
