@@ -31,7 +31,7 @@ Rectangle {
             Layout.fillWidth: true
         }
 
-        Button {
+        BinaButton {
             text: qsTr("Analisar (F5)")
             highlighted: true
             onClicked: root.reanalyzeRequested()

@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls.Basic
 
 // Pede a confirmação de uma ação: confirmed() só é emitido pelo botão de confirmar.
-Popup {
+BinaPopup {
     id: root
 
     property string title
@@ -16,16 +16,17 @@ Popup {
     focus: true
     anchors.centerIn: Overlay.overlay
     width: Math.min(360, Overlay.overlay ? Overlay.overlay.width - 2 * Theme.pagePadding : 360)
-    padding: Theme.pagePadding
+    padding: Theme.spacingXl
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: Theme.pagePadding
+        spacing: Theme.spacingLg
 
         Label {
             text: root.title
             font.bold: true
+            font.pixelSize: Theme.fontTitle
         }
 
         Label {
@@ -37,12 +38,12 @@ Popup {
         RowLayout {
             Layout.alignment: Qt.AlignRight
 
-            Button {
+            BinaButton {
                 text: qsTr("Cancelar")
                 onClicked: root.close()
             }
 
-            Button {
+            BinaButton {
                 text: root.confirmText
                 highlighted: true
                 onClicked: {

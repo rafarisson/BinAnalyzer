@@ -62,21 +62,39 @@ ColumnLayout {
                     id: tab
 
                     implicitHeight: Theme.headerHeight
+                    implicitWidth: Math.max(72, implicitContentWidth + 2 * Theme.spacingXl)
+                    padding: 0
+                    hoverEnabled: true
                     contentItem: Label {
                         text: tab.text
                         font.bold: tab.checked
+                        color: tab.checked ? Theme.text : tab.hovered ? Theme.text : Theme.textSecondary
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
+
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Theme.animFast
+                            }
+                        }
                     }
                     background: Rectangle {
-                        color: "transparent"
+                        color: tab.hovered && !tab.checked ? Theme.hoverOverlay : "transparent"
 
                         Rectangle {
                             anchors.bottom: parent.bottom
-                            width: parent.width
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: tab.checked ? parent.width : 0
                             height: 2
+                            radius: 1
                             color: Theme.accent
-                            visible: tab.checked
+
+                            Behavior on width {
+                                NumberAnimation {
+                                    duration: Theme.animNormal
+                                    easing.type: Easing.OutCubic
+                                }
+                            }
                         }
                     }
                 }

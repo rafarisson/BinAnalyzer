@@ -40,7 +40,7 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.margins: Theme.pagePadding
 
-        ComboBox {
+        BinaComboBox {
             id: combo
 
             model: root.formatController.patternIds
@@ -58,7 +58,7 @@ ColumnLayout {
             }
         }
 
-        Button {
+        BinaButton {
             text: qsTr("Novo...")
             onClicked: newFormat.open()
         }
@@ -84,7 +84,7 @@ ColumnLayout {
             text: qsTr("Padrão")
         }
 
-        TextField {
+        BinaTextField {
             id: patternField
 
             placeholderText: qsTr("%(campo)d, %x, %s ...")
@@ -100,7 +100,7 @@ ColumnLayout {
         RowLayout {
             Layout.fillWidth: true
 
-            TextField {
+            BinaTextField {
                 id: sampleField
 
                 placeholderText: qsTr("campo=valor, outro=2.5  ou  1, 2, texto")
@@ -109,7 +109,7 @@ ColumnLayout {
                 Layout.fillWidth: true
             }
 
-            Button {
+            BinaButton {
                 text: qsTr("Sugerir")
                 enabled: patternField.text !== ""
                 onClicked: sampleField.text = root.formatController.suggestSample(patternField.text)
@@ -125,7 +125,7 @@ ColumnLayout {
         RowLayout {
             Layout.fillWidth: true
 
-            Button {
+            BinaButton {
                 text: qsTr("Aplicar")
                 enabled: root.canApply
                 highlighted: root.canApply
@@ -136,7 +136,7 @@ ColumnLayout {
                 ToolTip.text: qsTr("Usa este padrão no formato selecionado. Os dados precisam ser analisados novamente.")
             }
 
-            Button {
+            BinaButton {
                 text: qsTr("Restaurar")
                 enabled: root.hasFormats && patternField.text !== root.formatController.currentSpec
                 onClicked: patternField.text = root.formatController.currentSpec
@@ -145,7 +145,7 @@ ColumnLayout {
             Label {
                 visible: root.hasFormats && patternField.text !== root.formatController.currentSpec
                 text: qsTr("Alterações ainda não aplicadas")
-                color: palette.placeholderText
+                color: Theme.textSecondary
                 Layout.fillWidth: true
             }
         }
@@ -155,8 +155,8 @@ ColumnLayout {
         }
 
         Rectangle {
-            color: root.outcome.ok ? palette.base : Theme.errorBackground
-            border.color: palette.mid
+            color: root.outcome.ok ? Theme.surface : Theme.errorBackground
+            border.color: Theme.border
             implicitHeight: resultLabel.implicitHeight + 2 * Theme.cellPadding
             Layout.fillWidth: true
 
@@ -166,7 +166,7 @@ ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: Theme.cellPadding
                 text: root.outcome.ok ? root.outcome.text : root.outcome.error
-                color: root.outcome.ok ? palette.text : Theme.errorText
+                color: root.outcome.ok ? Theme.text : Theme.errorText
                 font.family: Theme.monoFont
                 wrapMode: Text.WrapAnywhere
                 elide: Text.ElideNone
@@ -177,7 +177,7 @@ ColumnLayout {
     Label {
         text: qsTr("Campos por nome: %(campo)d, com caminho %(grupo.campo)d e ajuste %(ano+1900)d. "
                    + "Sem nome, os valores da amostra são usados em ordem.")
-        color: palette.placeholderText
+        color: Theme.textSecondary
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
         Layout.leftMargin: Theme.pagePadding

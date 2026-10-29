@@ -33,9 +33,9 @@ Column {
             required property string message
             required property bool isError
 
-            radius: 4
+            radius: Theme.radiusMedium
             color: isError ? Theme.errorBackground : Theme.warningBackground
-            border.color: Qt.darker(color, 1.15)
+            border.color: isError ? Theme.errorBorder : Theme.warningBorder
             implicitWidth: row.implicitWidth + 2 * Theme.pagePadding
             implicitHeight: row.implicitHeight + 2 * Theme.pagePadding
 
@@ -44,6 +44,13 @@ Column {
 
                 anchors.fill: parent
                 anchors.margins: Theme.pagePadding
+
+                Icon {
+                    text: Icons.alert
+                    font.pixelSize: 16
+                    color: toast.isError ? Theme.errorText : Theme.warningText
+                    Layout.leftMargin: Theme.spacingXs
+                }
 
                 Label {
                     text: toast.message
@@ -59,6 +66,12 @@ Column {
                     implicitHeight: 24
                     onClicked: toasts.remove(toast.index)
                 }
+            }
+
+            NumberAnimation on opacity {
+                from: 0
+                to: 1
+                duration: Theme.animNormal
             }
 
             Timer {

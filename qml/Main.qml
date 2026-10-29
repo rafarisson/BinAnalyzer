@@ -26,6 +26,29 @@ ApplicationWindow {
     minimumHeight: 300
     visible: true
     title: app.windowTitle
+    color: Theme.window
+
+    // A paleta vem do tema (e não do sistema): todos os controles a herdam, inclusive popups e menus.
+    palette {
+        window: Theme.window
+        windowText: Theme.text
+        base: Theme.surface
+        alternateBase: Theme.surfaceAlt
+        text: Theme.text
+        button: Theme.control
+        buttonText: Theme.text
+        highlight: Theme.accent
+        highlightedText: Theme.accentText
+        placeholderText: Theme.textSecondary
+        toolTipBase: Theme.raised
+        toolTipText: Theme.text
+        light: Theme.controlHover
+        midlight: Theme.controlHover
+        mid: Theme.border
+        dark: Theme.borderStrong
+        shadow: Theme.shadow
+        link: Theme.accent
+    }
 
     function saveSchema() {
         if (app.schemaPath === "")
@@ -99,7 +122,7 @@ ApplicationWindow {
         onAccepted: window.app.exportResult(selectedFile.toString())
     }
 
-    Dialog {
+    BinaDialog {
         id: confirmClose
 
         title: qsTr("Alterações não salvas")
@@ -128,6 +151,21 @@ ApplicationWindow {
 
     SplitView {
         anchors.fill: parent
+
+        handle: Rectangle {
+            implicitWidth: 5
+            implicitHeight: 5
+            color: SplitHandle.pressed ? Theme.accent
+                   : SplitHandle.hovered ? Qt.alpha(Theme.accent, 0.6)
+                   : Theme.border
+            opacity: SplitHandle.pressed || SplitHandle.hovered ? 1 : 0.6
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: Theme.animFast
+                }
+            }
+        }
 
         SchemaPane {
             id: schemaPane

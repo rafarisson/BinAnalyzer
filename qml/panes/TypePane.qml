@@ -45,7 +45,7 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.margins: Theme.pagePadding
 
-        ComboBox {
+        BinaComboBox {
             id: combo
 
             model: root.typeController.choices
@@ -67,7 +67,7 @@ ColumnLayout {
             }
         }
 
-        Button {
+        BinaButton {
             text: qsTr("Novo...")
             onClicked: newType.open()
 
@@ -77,7 +77,7 @@ ColumnLayout {
                                           : qsTr("Cria um tipo com um campo inicial, para editar em seguida.")
         }
 
-        Button {
+        BinaButton {
             text: qsTr("Aplicar")
             enabled: root.typeController.modified
             highlighted: root.typeController.modified
@@ -88,7 +88,7 @@ ColumnLayout {
             ToolTip.text: qsTr("Grava a definição no tipo. Os dados precisam ser analisados novamente.")
         }
 
-        Button {
+        BinaButton {
             text: qsTr("Restaurar")
             enabled: root.typeController.modified
             onClicked: root.typeController.restore()
@@ -113,11 +113,11 @@ ColumnLayout {
                     return qsTr("Fora da biblioteca")
                 }
             }
-            color: palette.placeholderText
+            color: Theme.textSecondary
             Layout.fillWidth: true
         }
 
-        Button {
+        BinaButton {
             text: qsTr("Salvar na biblioteca")
             enabled: root.typeController.libraryState !== TypeDefinitionController.SameAsLibrary
                      && !root.typeController.modified
@@ -128,7 +128,7 @@ ColumnLayout {
             ToolTip.text: qsTr("Grava o tipo aplicado, com os tipos e formatos que ele usa, na pasta da biblioteca.")
         }
 
-        Button {
+        BinaButton {
             text: qsTr("Atualizar da biblioteca")
             enabled: root.typeController.libraryState === TypeDefinitionController.DiffersFromLibrary
             onClicked: root.typeController.updateFromLibrary()
@@ -138,7 +138,7 @@ ColumnLayout {
             ToolTip.text: qsTr("Troca a definição deste tipo pela da biblioteca. As edições não aplicadas são descartadas.")
         }
 
-        Button {
+        BinaButton {
             text: qsTr("Remover")
             onClicked: removal.open()
 
@@ -155,7 +155,7 @@ ColumnLayout {
         Layout.rightMargin: Theme.pagePadding
         Layout.bottomMargin: Theme.pagePadding
 
-        Switch {
+        BinaSwitch {
             text: qsTr("Ativo na análise")
             enabled: root.hasTypes
             checked: root.typeController.active
@@ -169,7 +169,7 @@ ColumnLayout {
         Label {
             visible: root.hasTypes
             text: qsTr("Tamanho: %1 bytes").arg(root.typeController.sizeInBytes)
-            color: palette.placeholderText
+            color: Theme.textSecondary
             Layout.fillWidth: true
         }
 
@@ -201,7 +201,7 @@ ColumnLayout {
     Label {
         visible: root.typeController.modified
         text: qsTr("Alterações do tipo '%1' ainda não aplicadas").arg(root.typeController.currentType)
-        color: palette.placeholderText
+        color: Theme.textSecondary
         Layout.leftMargin: Theme.pagePadding
         Layout.bottomMargin: Theme.pagePadding
     }

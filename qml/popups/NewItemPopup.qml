@@ -4,7 +4,7 @@ import QtQuick.Controls.Basic
 
 // Pede o nome (e, se pedido, o padrão) de um tipo ou formato novo. A validação é do documento:
 // quem recebe accepted() cria o item e mostra a recusa, se houver.
-Popup {
+BinaPopup {
     id: root
 
     property string title
@@ -26,7 +26,7 @@ Popup {
     focus: true
     anchors.centerIn: Overlay.overlay
     width: Math.min(360, Overlay.overlay ? Overlay.overlay.width - 2 * Theme.pagePadding : 360)
-    padding: Theme.pagePadding
+    padding: Theme.spacingXl
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
     onAboutToShow: {
@@ -37,14 +37,15 @@ Popup {
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: Theme.pagePadding
+        spacing: Theme.spacingLg
 
         Label {
             text: root.title
             font.bold: true
+            font.pixelSize: Theme.fontTitle
         }
 
-        TextField {
+        BinaTextField {
             id: nameField
 
             placeholderText: qsTr("Nome")
@@ -53,7 +54,7 @@ Popup {
             onAccepted: root.submit()
         }
 
-        TextField {
+        BinaTextField {
             id: patternField
 
             visible: root.askPattern
@@ -67,12 +68,12 @@ Popup {
         RowLayout {
             Layout.alignment: Qt.AlignRight
 
-            Button {
+            BinaButton {
                 text: qsTr("Cancelar")
                 onClicked: root.close()
             }
 
-            Button {
+            BinaButton {
                 text: qsTr("Criar")
                 enabled: root.valid
                 highlighted: root.valid

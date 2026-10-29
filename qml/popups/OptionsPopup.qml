@@ -5,7 +5,7 @@ import Bina.App
 
 // Opções do documento (ordem dos bytes e alinhamento máximo dos campos) e a pasta da biblioteca de
 // tipos.
-Popup {
+BinaPopup {
     id: root
 
     required property AppController app
@@ -28,7 +28,7 @@ Popup {
     property Item anchorItem
 
     parent: Overlay.overlay
-    padding: 12
+    padding: Theme.spacingXl
     margins: Theme.pagePadding
     modal: false
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
@@ -36,9 +36,9 @@ Popup {
     onAboutToShow: root.placeBelow()
 
     contentItem: ColumnLayout {
-        spacing: 10
+        spacing: Theme.spacingLg
 
-        Switch {
+        BinaSwitch {
             text: qsTr("Dados em big endian")
             checked: root.app.bigEndian
             onToggled: root.app.bigEndian = checked
@@ -51,7 +51,7 @@ Popup {
                 text: qsTr("Alinhamento máximo (bytes)")
             }
 
-            ComboBox {
+            BinaComboBox {
                 model: [1, 2, 4, 8, 16]
                 currentIndex: model.indexOf(root.app.maxAlign)
                 onActivated: root.app.maxAlign = Number(currentText)
@@ -69,7 +69,7 @@ Popup {
 
         Label {
             text: root.app.typeLibraryPath
-            color: palette.placeholderText
+            color: Theme.textSecondary
             elide: Text.ElideMiddle
             Layout.maximumWidth: 360
         }
@@ -77,13 +77,13 @@ Popup {
         RowLayout {
             spacing: 8
 
-            Button {
+            BinaButton {
                 text: qsTr("Abrir pasta")
                 enabled: root.app.typeLibraryPath !== ""
                 onClicked: root.app.openTypeLibraryFolder()
             }
 
-            Button {
+            BinaButton {
                 text: qsTr("Restaurar tipos padrão")
                 enabled: root.app.typeLibraryPath !== ""
                 onClicked: root.app.restoreDefaultTypes()

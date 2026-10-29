@@ -4,7 +4,7 @@ import QtQml.Models
 
 // Editor de lista de uma célula. 'choices' é uma lista de {value, text} (role "choices" do model);
 // escolher uma opção confirma a edição.
-ComboBox {
+BinaComboBox {
     id: root
 
     required property AbstractItemModel itemModel

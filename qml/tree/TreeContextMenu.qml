@@ -7,7 +7,7 @@ import Bina.App
 // Menu de contexto genérico para um model com actions(index) e trigger(index, id, text): as entradas
 // (texto e habilitado) e a execução vêm do model, que também decide o que o campo permite. Uma entrada
 // com 'prompt' precisa de um texto: o menu avisa por textRequested() e quem o usa pede o texto.
-Menu {
+BinaMenu {
     id: root
 
     required property SchemaTreeModel itemModel
@@ -34,7 +34,7 @@ Menu {
     Instantiator {
         model: root.entries
 
-        delegate: MenuItem {
+        delegate: BinaMenuItem {
             required property var modelData
 
             text: modelData.text

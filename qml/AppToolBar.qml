@@ -17,6 +17,19 @@ ToolBar {
     signal openDataRequested()
     signal exportResultRequested()
 
+    implicitHeight: 44
+
+    background: Rectangle {
+        color: Theme.headerBackground
+
+        Rectangle {
+            anchors.bottom: parent.bottom
+            width: parent.width
+            height: 1
+            color: Theme.headerBorder
+        }
+    }
+
     Action {
         id: newAction
 
@@ -91,7 +104,7 @@ ToolBar {
         anchors.fill: parent
         anchors.leftMargin: Theme.pagePadding
         anchors.rightMargin: Theme.pagePadding
-        spacing: 4
+        spacing: Theme.spacingXs
 
         BarButton {
             id: fileButton
@@ -100,22 +113,22 @@ ToolBar {
             text: qsTr("Arquivo")
             onClicked: fileMenu.open()
 
-            Menu {
+            BinaMenu {
                 id: fileMenu
 
                 y: fileButton.height
 
-                MenuItem {
+                BinaMenuItem {
                     action: newAction
                 }
-                MenuItem {
+                BinaMenuItem {
                     action: openSchemaAction
                 }
                 MenuSeparator {}
-                MenuItem {
+                BinaMenuItem {
                     action: saveAction
                 }
-                MenuItem {
+                BinaMenuItem {
                     action: saveAsAction
                 }
             }
@@ -144,15 +157,22 @@ ToolBar {
             text: qsTr("Analisar")
             hint: qsTr("Analisa o arquivo com a estrutura atual")
             font.bold: pending
-            contentColor: pending && enabled ? Theme.accentText : palette.buttonText
+            contentColor: pending && enabled ? Theme.accentText : Theme.text
 
             // Destaca o botão quando a estrutura mudou depois da última análise.
             background: Rectangle {
-                radius: 4
-                color: analyzeButton.pending && analyzeButton.enabled ? Theme.accent
-                       : analyzeButton.down ? analyzeButton.palette.mid
-                       : analyzeButton.hovered ? analyzeButton.palette.midlight
+                radius: Theme.radiusMedium
+                color: analyzeButton.pending && analyzeButton.enabled
+                       ? (analyzeButton.down ? Theme.accentPressed : analyzeButton.hovered ? Theme.accentHover : Theme.accent)
+                       : analyzeButton.down ? Theme.pressedOverlay
+                       : analyzeButton.hovered ? Theme.hoverOverlay
                        : "transparent"
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: Theme.animFast
+                    }
+                }
             }
         }
 

@@ -30,13 +30,14 @@ Rectangle {
         Label {
             text: root.title
             font.bold: true
+            font.pixelSize: Theme.fontTitle - 1
         }
 
         Rectangle {
             visible: root.badge !== ""
             radius: height / 2
             color: Theme.badgeBackground
-            implicitWidth: badgeLabel.implicitWidth + 12
+            implicitWidth: badgeLabel.implicitWidth + 14
             implicitHeight: badgeLabel.implicitHeight + 2
 
             Label {
@@ -44,7 +45,8 @@ Rectangle {
 
                 anchors.centerIn: parent
                 text: root.badge
-                font.pixelSize: 11
+                color: Theme.textSecondary
+                font.pixelSize: Theme.fontSmall
             }
         }
 

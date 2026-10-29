@@ -3,7 +3,7 @@ import QtQuick.Controls.Basic
 import QtQml.Models
 
 // Editor de texto de uma célula. Quem o hospeda chama commit() ao confirmar.
-TextField {
+BinaTextField {
     id: root
 
     required property AbstractItemModel itemModel

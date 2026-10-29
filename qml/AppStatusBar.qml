@@ -32,7 +32,8 @@ Rectangle {
         Label {
             text: root.app.session.statusText
             elide: Text.ElideRight
-            font.pixelSize: 12
+            color: Theme.textSecondary
+            font.pixelSize: Theme.fontCaption
             Layout.fillWidth: true
         }
 
@@ -40,14 +41,16 @@ Rectangle {
             visible: root.app.dataPath !== ""
             text: qsTr("Binário: %1").arg(root.fileName(root.app.dataPath))
             elide: Text.ElideMiddle
-            font.pixelSize: 12
+            color: Theme.textSecondary
+            font.pixelSize: Theme.fontCaption
             Layout.maximumWidth: 300
         }
 
         Label {
             text: qsTr("Estrutura: %1").arg(root.app.schemaPath === "" ? qsTr("Sem título") : root.fileName(root.app.schemaPath))
             elide: Text.ElideMiddle
-            font.pixelSize: 12
+            color: Theme.textSecondary
+            font.pixelSize: Theme.fontCaption
             Layout.maximumWidth: 300
         }
 
@@ -55,7 +58,7 @@ Rectangle {
             visible: root.app.dirty
             text: qsTr("● não salvo")
             color: Theme.warningText
-            font.pixelSize: 12
+            font.pixelSize: Theme.fontCaption
             font.bold: true
         }
     }
