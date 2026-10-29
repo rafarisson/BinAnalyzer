@@ -81,6 +81,7 @@ Item {
         HorizontalHeaderView {
             syncView: tree
             clip: true
+            delegate: ColumnHeaderCell {}
             Layout.fillWidth: true
         }
 

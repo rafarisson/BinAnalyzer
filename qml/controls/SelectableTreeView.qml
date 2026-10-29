@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls.Basic
 
 // TreeView que sabe qual linha está em destaque: a da célula atual, seja qual for a coluna clicada.
 // Os delegates comparam a própria linha com highlightedRow, em vez de depender da seleção do Qt (cada
@@ -8,6 +9,28 @@ TreeView {
 
     // Linha (da view) da célula atual; -1 sem célula atual.
     property int highlightedRow: -1
+
+    // Linha sob o mouse; -1 com o mouse fora da view.
+    property int hoveredRow: -1
+
+    function syncHoveredRow() {
+        if (!hover.hovered) {
+            root.hoveredRow = -1
+            return
+        }
+
+        root.hoveredRow = root.cellAtPosition(hover.point.position).y
+    }
+
+    HoverHandler {
+        id: hover
+
+        onPointChanged: root.syncHoveredRow()
+        onHoveredChanged: root.syncHoveredRow()
+    }
+
+    ScrollBar.vertical: BinaScrollBar {}
+    ScrollBar.horizontal: BinaScrollBar {}
 
     function syncHighlightedRow() {
         const index = root.selectionModel ? root.selectionModel.currentIndex : null

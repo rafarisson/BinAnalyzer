@@ -24,6 +24,7 @@ TreeViewDelegate {
     // O mesmo fundo da tabela: linhas alternadas e a linha selecionada com contorno.
     background: RowBackground {
         selected: cell.row === cell.treeView.highlightedRow
+        hovered: cell.row === cell.treeView.hoveredRow
         row: cell.row
         column: cell.column
         columns: cell.treeView.columns
@@ -35,8 +36,8 @@ TreeViewDelegate {
         elide: Text.ElideRight
         opacity: cell.isAutoPad || cell.hiddenValue ? 0.55 : 1
         font.italic: cell.isAutoPad || cell.hiddenValue
-        color: cell.column === 1 ? Theme.typeColor(text, cell.palette.buttonText)
-               : cell.palette.buttonText
+        color: cell.column === 1 ? Theme.typeColor(text, Theme.text)
+               : Theme.text
         visible: !cell.editing
     }
 

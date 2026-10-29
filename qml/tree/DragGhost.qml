@@ -6,6 +6,7 @@ Label {
     padding: 4
 
     background: Rectangle {
+        radius: Theme.radiusSmall
         color: Theme.ghostBackground
         border.color: Theme.dropValid
     }

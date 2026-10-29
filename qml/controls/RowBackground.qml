@@ -1,8 +1,8 @@
 import QtQuick
 
-// Fundo de uma célula de tabela ou árvore. A linha selecionada tem fundo azul claro e um contorno azul
-// na linha inteira: cada célula desenha a parte dela (as bordas de cima e de baixo, e a lateral só nas
-// pontas). As demais linhas alternam as cores da paleta.
+// Fundo de uma célula de tabela ou árvore. A linha selecionada tem fundo na cor de destaque e um
+// contorno na linha inteira: cada célula desenha a parte dela (as bordas de cima e de baixo, e a lateral
+// só nas pontas). As demais linhas alternam as cores do tema e ganham um realce sob o mouse.
 Rectangle {
     id: root
 
@@ -12,13 +12,13 @@ Rectangle {
     property int columns: 1
     property bool alternating: true
 
-    SystemPalette {
-        id: colors
-    }
+    // O mouse está sobre a linha (informado por quem desenha a célula).
+    property bool hovered: false
 
     color: selected ? Theme.selectionFill
-           : alternating && row % 2 === 1 ? colors.alternateBase
-           : colors.base
+           : hovered ? Theme.rowHover
+           : alternating && row % 2 === 1 ? Theme.surfaceAlt
+           : Theme.surface
 
     Rectangle {
         visible: root.selected

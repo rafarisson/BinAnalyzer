@@ -62,6 +62,21 @@ ColumnLayout {
             anchors.fill: parent
             orientation: Qt.Vertical
 
+            handle: Rectangle {
+                implicitWidth: 5
+                implicitHeight: 5
+                color: SplitHandle.pressed ? Theme.accent
+                       : SplitHandle.hovered ? Qt.alpha(Theme.accent, 0.6)
+                       : Theme.border
+                opacity: SplitHandle.pressed || SplitHandle.hovered ? 1 : 0.6
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: Theme.animFast
+                    }
+                }
+            }
+
             // O cabeçalho do arquivo (só se a análise o incluiu), no mesmo modo de exibição dos dados.
             ColumnLayout {
                 visible: root.app.session.hasHeader
@@ -123,6 +138,7 @@ ColumnLayout {
             anchors.fill: parent
             title: qsTr("Nenhum arquivo analisado")
             hint: qsTr("Abra um arquivo binário ou arraste-o para esta janela. Ele é analisado com a estrutura ao lado.")
+            glyph: Icons.fileSearchOutline
             actionText: qsTr("Abrir binário…")
             onActionRequested: root.openDataRequested()
         }

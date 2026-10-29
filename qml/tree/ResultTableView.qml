@@ -88,10 +88,6 @@ Item {
         formatMenu.popup(root, position.x, position.y)
     }
 
-    SystemPalette {
-        id: colors
-    }
-
     HorizontalHeaderView {
         id: columnHeader
 
@@ -99,6 +95,7 @@ Item {
         anchors.left: table.left
         anchors.top: parent.top
         clip: true
+        delegate: ColumnHeaderCell {}
 
         TapHandler {
             acceptedButtons: Qt.RightButton
@@ -120,7 +117,7 @@ Item {
 
             implicitWidth: labelText.implicitWidth + 2 * Theme.cellPadding
             implicitHeight: Theme.rowHeight
-            color: label.row === table.highlightedRow ? Theme.selectionFill : colors.window
+            color: label.row === table.highlightedRow ? Theme.selectionFill : Theme.headerBackground
 
             Label {
                 id: labelText
@@ -172,8 +169,22 @@ Item {
             }
         }
 
-        ScrollBar.horizontal: ScrollBar {}
-        ScrollBar.vertical: ScrollBar {}
+        // Linha sob o mouse; -1 com o mouse fora da tabela.
+        property int hoveredRow: -1
+
+        function syncHoveredRow() {
+            hoveredRow = tableHover.hovered ? cellAtPosition(tableHover.point.position).y : -1
+        }
+
+        HoverHandler {
+            id: tableHover
+
+            onPointChanged: table.syncHoveredRow()
+            onHoveredChanged: table.syncHoveredRow()
+        }
+
+        ScrollBar.horizontal: BinaScrollBar {}
+        ScrollBar.vertical: BinaScrollBar {}
 
         delegate: Rectangle {
             id: cell
@@ -193,6 +204,7 @@ Item {
             RowBackground {
                 anchors.fill: parent
                 selected: cell.row === table.highlightedRow
+                hovered: cell.row === table.hoveredRow
                 row: cell.row
                 column: cell.column
                 columns: table.columns
@@ -261,13 +273,13 @@ Item {
     Component {
         id: columnMenuComponent
 
-        Menu {}
+        BinaMenu {}
     }
 
     Component {
         id: columnItemComponent
 
-        MenuItem {}
+        BinaMenuItem {}
     }
 
     Component {
@@ -276,7 +288,7 @@ Item {
         MenuSeparator {}
     }
 
-    Menu {
+    BinaMenu {
         id: formatMenu
 
         property var targetIndex
@@ -286,7 +298,7 @@ Item {
         Instantiator {
             model: formatMenu.choices
 
-            delegate: MenuItem {
+            delegate: BinaMenuItem {
                 required property var modelData
 
                 text: modelData.label

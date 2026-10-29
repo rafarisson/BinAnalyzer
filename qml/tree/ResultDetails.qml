@@ -51,13 +51,14 @@ Rectangle {
 
     onCurrentIndexChanged: refresh()
 
-    color: palette.window
-    implicitHeight: expanded ? 138 : Theme.headerHeight - 6
+    color: Theme.surface
+    implicitHeight: expanded ? 132 : Theme.headerHeight - 6
     clip: true
 
     Behavior on implicitHeight {
         NumberAnimation {
-            duration: 120
+            duration: Theme.animNormal
+            easing.type: Easing.OutCubic
         }
     }
 
@@ -73,6 +74,26 @@ Rectangle {
         }
     }
 
+    // Um dado do campo: legenda pequena em cima e o valor embaixo.
+    component Field: ColumnLayout {
+        property string caption
+        property string value
+        property bool mono: true
+
+        spacing: 0
+
+        Label {
+            text: parent.caption
+            color: Theme.textSecondary
+            font.pixelSize: Theme.fontSmall
+        }
+
+        Label {
+            text: parent.value
+            font.family: parent.mono ? Theme.monoFont : font.family
+        }
+    }
+
     Rectangle {
         width: parent.width
         height: 1
@@ -82,13 +103,15 @@ Rectangle {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: Theme.pagePadding
-        spacing: 4
+        anchors.leftMargin: Theme.pagePadding + 2
+        spacing: Theme.spacingSm
 
         RowLayout {
             Layout.fillWidth: true
+            spacing: Theme.spacingMd
 
             Row {
-                spacing: 4
+                spacing: Theme.spacingXs
 
                 Icon {
                     text: root.expanded ? Icons.chevronDown : Icons.chevronRight
@@ -109,8 +132,9 @@ Rectangle {
             Label {
                 visible: root.info.path !== undefined
                 text: root.info.path ?? ""
-                color: palette.placeholderText
+                color: Theme.textSecondary
                 elide: Text.ElideLeft
+                horizontalAlignment: Text.AlignRight
                 Layout.fillWidth: true
             }
 
@@ -120,40 +144,78 @@ Rectangle {
             }
         }
 
-        GridLayout {
+        RowLayout {
             visible: root.expanded && root.info.path !== undefined
-            columns: 4
-            columnSpacing: Theme.pagePadding * 2
-            rowSpacing: 2
+            spacing: Theme.spacingXl
             Layout.fillWidth: true
 
-            Label { text: qsTr("Tipo"); color: palette.placeholderText }
-            Label { text: root.info.type ?? ""; color: Theme.typeColor(text, palette.text); font.family: Theme.monoFont }
-            Label { text: qsTr("Offset"); color: palette.placeholderText }
-            Label { text: root.info.offset ?? ""; font.family: Theme.monoFont }
+            // O tipo vira um selo na cor da categoria dele.
+            ColumnLayout {
+                spacing: 0
 
-            Label { text: qsTr("Bytes"); color: palette.placeholderText }
-            Label { text: root.info.size ?? ""; font.family: Theme.monoFont }
-            Label { text: qsTr("Exibição"); color: palette.placeholderText }
-            Label { text: root.info.format ?? ""; font.family: Theme.monoFont }
+                Label {
+                    text: qsTr("Tipo")
+                    color: Theme.textSecondary
+                    font.pixelSize: Theme.fontSmall
+                }
+
+                Rectangle {
+                    readonly property color tone: Theme.typeColor(root.info.type ?? "", Theme.text)
+
+                    radius: Theme.radiusSmall
+                    color: Qt.alpha(tone, 0.15)
+                    implicitWidth: typeLabel.implicitWidth + 12
+                    implicitHeight: typeLabel.implicitHeight + 2
+
+                    Label {
+                        id: typeLabel
+
+                        anchors.centerIn: parent
+                        text: root.info.type ?? ""
+                        color: parent.tone
+                        font.family: Theme.monoFont
+                        font.bold: true
+                    }
+                }
+            }
+
+            Field {
+                caption: qsTr("Offset")
+                value: root.info.offset ?? ""
+            }
+
+            Field {
+                caption: qsTr("Bytes")
+                value: root.info.size ?? ""
+            }
+
+            Field {
+                caption: qsTr("Exibição")
+                value: root.info.format ?? ""
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
         }
 
         RowLayout {
             visible: root.expanded && root.info.path !== undefined
+            spacing: Theme.spacingMd
             Layout.fillWidth: true
 
             Label {
                 text: qsTr("Valor")
-                color: palette.placeholderText
+                color: Theme.textSecondary
             }
 
-            TextField {
+            BinaTextField {
                 id: valueField
 
                 readOnly: true
-                selectByMouse: true
                 text: root.info.value ?? ""
                 font.family: Theme.monoFont
+                implicitHeight: 28
                 Layout.fillWidth: true
             }
 
@@ -171,7 +233,7 @@ Rectangle {
         Label {
             visible: root.expanded && root.info.path === undefined
             text: qsTr("Selecione um campo para ver os detalhes.")
-            color: palette.placeholderText
+            color: Theme.textSecondary
         }
 
         Item {
