@@ -100,7 +100,9 @@ Item {
 
         visible: root.dragging && root.target !== undefined
         z: 10
-        width: root.width - indicator.leftInset
+        // Termina onde as linhas terminam: no fim da última coluna ou na borda da view, o que vier antes.
+        width: Math.max(0, view.mapToItem(root, Math.min(view.width, view.contentWidth - view.contentX), 0).x
+                           - indicator.leftInset)
         zone: root.zone
         valid: root.valid
     }
