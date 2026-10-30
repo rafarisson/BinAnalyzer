@@ -36,7 +36,7 @@ ComboBox {
             font: root.font
             elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
-            color: root.currentIndex === item.index ? Theme.accent : Theme.text
+            color: root.currentIndex === index ? Theme.accent : Theme.text
         }
 
         background: Rectangle {

@@ -13,7 +13,8 @@ SpinBox {
     property int maximum: 1000000
 
     function commit() {
-        itemModel.setData(itemIndex, valueFromText((contentItem as TextInput).text, locale), Qt.EditRole)
+        const typed = valueFromText((contentItem as TextInput).text, locale)
+        itemModel.setData(itemIndex, Math.max(from, Math.min(to, typed)), Qt.EditRole)
     }
 
     from: minimum

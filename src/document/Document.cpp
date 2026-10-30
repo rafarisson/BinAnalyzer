@@ -186,8 +186,12 @@ schema::OperationResult Document::removeType(const QString &id)
     if (header)
         emit typesAboutToChange();
 
-    if (const OperationResult removed = m_registry->remove(id); !removed)
+    if (const OperationResult removed = m_registry->remove(id); !removed) {
+        if (header)
+            emit typesChanged(); // fecha o par aviso/alteração aberto acima
+
         return removed;
+    }
 
     if (header) {
         m_headerIds.removeAll(id);

@@ -141,8 +141,11 @@ BinaPopup {
 
         BinaSwitch {
             text: qsTr("Dados em big endian")
-            checked: root.app.bigEndian
             onToggled: root.app.bigEndian = checked
+
+            Binding on checked {
+                value: root.app.bigEndian
+            }
         }
 
         RowLayout {

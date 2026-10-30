@@ -74,6 +74,11 @@ Column {
                 duration: Theme.animNormal
             }
 
+            TapHandler {
+                enabled: toast.isError
+                onTapped: toasts.remove(toast.index)
+            }
+
             Timer {
                 interval: 5000
                 running: !toast.isError
